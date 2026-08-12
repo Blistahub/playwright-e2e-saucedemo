@@ -1,0 +1,11 @@
+# Finales de línea normalizados a LF en el repositorio.
+# Sin esto, lo que se escribe en Windows (CRLF) y lo que se ejecuta en el
+# runner de CI (LF) no coinciden, y aparecen diferencias que no tienen nada
+# que ver con el contenido.
+* text=auto eol=lf
+
+# Binarios: no tocar nunca.
+*.png  binary
+*.jpg  binary
+*.webm binary
+*.zip  binary

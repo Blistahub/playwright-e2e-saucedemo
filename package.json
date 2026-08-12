@@ -1,0 +1,25 @@
+{
+  "name": "playwright-e2e-saucedemo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Suite E2E automatizada con Playwright y TypeScript sobre SauceDemo: Page Object Model, fixtures, pruebas dirigidas por datos y ejecución cross-browser en CI.",
+  "author": "David Coya Moreno",
+  "license": "MIT",
+  "scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:headed": "playwright test --project=chromium --headed",
+    "test:ui": "playwright test --ui",
+    "test:humo": "playwright test --grep @humo",
+    "test:hallazgos": "playwright test --grep @hallazgo",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.0"
+  }
+}

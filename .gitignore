@@ -1,0 +1,18 @@
+node_modules/
+
+# Artefactos de ejecución de Playwright: se regeneran en cada run y no se versionan.
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# Entorno local
+.env
+.env.local
+
+# Sistema operativo y editores
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

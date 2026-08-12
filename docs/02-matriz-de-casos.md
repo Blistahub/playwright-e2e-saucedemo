@@ -1,0 +1,76 @@
+# Matriz de casos
+
+26 casos por navegador × 3 navegadores = **78 ejecuciones** por cada push.
+
+Los identificadores no se reutilizan. Si un caso se retira, su número se queda libre: reasignarlo
+rompería la trazabilidad de cualquier conversación o informe que lo mencionara.
+
+---
+
+## Casos funcionales
+
+| # | Caso | Fichero | Técnica de diseño | Etiqueta |
+| :---: | --- | --- | --- | :---: |
+| CP-01 | El usuario estándar accede y aterriza en el catálogo | [`login.spec.ts`](../tests/login.spec.ts) | Camino principal | `@humo` |
+| CP-02 | El acceso se rechaza con usuario bloqueado | [`login.spec.ts`](../tests/login.spec.ts) | Partición de equivalencia | |
+| CP-03 | El acceso se rechaza con contraseña incorrecta | [`login.spec.ts`](../tests/login.spec.ts) | Partición de equivalencia | |
+| CP-04 | El acceso se rechaza con usuario inexistente | [`login.spec.ts`](../tests/login.spec.ts) | Partición de equivalencia | |
+| CP-05 | El acceso se rechaza con usuario vacío | [`login.spec.ts`](../tests/login.spec.ts) | Partición de equivalencia | |
+| CP-06 | El acceso se rechaza con contraseña vacía | [`login.spec.ts`](../tests/login.spec.ts) | Partición de equivalencia | |
+| CP-07 | El cierre de sesión invalida el acceso directo por URL | [`login.spec.ts`](../tests/login.spec.ts) | Transición de estados | `@humo` |
+| CP-08 | Añadir un producto actualiza contador y botón | [`cart.spec.ts`](../tests/cart.spec.ts) | Transición de estados | `@humo` |
+| CP-09 | El carrito recoge exactamente los productos añadidos | [`cart.spec.ts`](../tests/cart.spec.ts) | Camino principal | |
+| CP-10 | Eliminar el último producto deja el carrito vacío | [`cart.spec.ts`](../tests/cart.spec.ts) | Transición de estados | |
+| CP-11 | El carrito se conserva al volver al catálogo | [`cart.spec.ts`](../tests/cart.spec.ts) | Persistencia de estado | |
+| CP-12 | Ordenar por nombre de la A a la Z | [`sorting.spec.ts`](../tests/sorting.spec.ts) | Dirigido por datos | |
+| CP-13 | Ordenar por nombre de la Z a la A | [`sorting.spec.ts`](../tests/sorting.spec.ts) | Dirigido por datos | |
+| CP-14 | Ordenar por precio de menor a mayor | [`sorting.spec.ts`](../tests/sorting.spec.ts) | Dirigido por datos | |
+| CP-15 | Ordenar por precio de mayor a menor | [`sorting.spec.ts`](../tests/sorting.spec.ts) | Dirigido por datos | |
+| CP-16 | Compra completa de extremo a extremo | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Camino principal | `@humo` |
+| CP-17 | El resumen calcula subtotal, impuesto y total | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Oráculo calculado | |
+| CP-18 | El checkout rechaza los datos sin nombre | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Tabla de decisión | |
+| CP-19 | El checkout rechaza los datos sin apellido | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Tabla de decisión | |
+| CP-20 | El checkout rechaza los datos sin código postal | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Tabla de decisión | |
+| CP-21 | Cancelar en el paso de datos devuelve al carrito sin perderlo | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Transición de estados | |
+
+## Casos de hallazgo
+
+Afirman el comportamiento **correcto**, marcados con `test.fail()`. El detalle de cada defecto está
+en [`03-hallazgos.md`](03-hallazgos.md).
+
+| # | Caso | Usuario | Fichero | Etiqueta |
+| :---: | --- | --- | --- | :---: |
+| HAL-01 | Cada producto debe mostrar su propia imagen | `problem_user` | [`findings.spec.ts`](../tests/findings.spec.ts) | `@hallazgo` |
+| HAL-02 | El campo «Last Name» debe aceptar lo que se escribe | `problem_user` | [`findings.spec.ts`](../tests/findings.spec.ts) | `@hallazgo` |
+| HAL-03 | «Remove» debe retirar el producto del carrito | `error_user` | [`findings.spec.ts`](../tests/findings.spec.ts) | `@hallazgo` |
+| HAL-04 | El criterio de orden debe reordenar el catálogo | `error_user` | [`findings.spec.ts`](../tests/findings.spec.ts) | `@hallazgo` |
+| HAL-05 | El acceso debe completarse dentro del presupuesto de tiempo | `performance_glitch_user` | [`findings-performance.spec.ts`](../tests/findings-performance.spec.ts) | `@hallazgo` |
+
+---
+
+## Cobertura por funcionalidad
+
+| Funcionalidad | Casos | Cubierto |
+| --- | :---: | --- |
+| Autenticación | 7 | Acceso válido, cinco clases de rechazo y cierre de sesión con verificación de ruta protegida |
+| Catálogo | 4 | Los cuatro criterios de ordenación. **No cubierto:** la vista de detalle de producto |
+| Carrito | 4 | Alta, baja, contador y persistencia. **No cubierto:** el botón «Reset App State» del menú |
+| Checkout | 6 | Compra completa, cálculo de importes, tres campos obligatorios y cancelación. **No cubierto:** el botón «Cancel» del paso de resumen |
+| Defectos conocidos | 5 | Los cinco reproducibles encontrados en tres de los seis usuarios |
+
+Los huecos se declaran en lugar de darlos por cubiertos. Ninguno de los tres está en un camino que
+lleve a completar una compra, que es el criterio de selección declarado en el
+[plan](01-plan-de-automatizacion.md#1-objetivo).
+
+---
+
+## Etiquetas
+
+```bash
+npm run test:humo        # 4 casos: el mínimo para decir que la aplicación está en pie
+npm run test:hallazgos   # 5 casos: los defectos conocidos
+```
+
+`@humo` marca el subconjunto que se ejecutaría antes de un despliegue, cuando no hay tiempo para
+la suite entera: acceso, cierre de sesión, añadir al carrito y compra completa. Si esos cuatro
+pasan, la aplicación es utilizable.

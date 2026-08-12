@@ -1,0 +1,146 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Un push que llega mientras se ejecuta el anterior cancela al anterior:
+# el resultado que interesa es el del último commit, no el de todos.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  calidad:
+    name: Comprobación de tipos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Un error de tipos se detecta en veinte segundos y sin levantar un solo
+      # navegador. Va en su propio job para que el fallo diga "es de código",
+      # no "ha fallado algo en la suite".
+      - name: Comprobar tipos
+        run: npm run typecheck
+
+  e2e:
+    name: E2E · ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      # Si Firefox falla, WebKit tiene que ejecutarse igual: sin esto se
+      # cancelarían los demás y el reporte diría menos de lo que sabe.
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Solo el navegador de este job de la matriz, no los tres.
+      - name: Instalar navegador
+        run: npx playwright install --with-deps ${{ matrix.project }}
+
+      - name: Ejecutar la suite
+        run: npx playwright test --project=${{ matrix.project }} --reporter=blob
+
+      # El reporte "blob" es el formato intermedio que permite unir después
+      # los resultados de los tres navegadores en un único informe HTML.
+      - name: Guardar el reporte parcial
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-${{ matrix.project }}
+          path: blob-report/
+          retention-days: 7
+
+  reporte:
+    name: Reporte unificado
+    # `always()` para que el informe se genere también —sobre todo— cuando
+    # algún navegador ha fallado: es justo cuando hace falta mirarlo.
+    if: ${{ always() }}
+    needs: [e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Recuperar los reportes parciales
+        uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - name: Unir los tres navegadores en un informe
+        run: npx playwright merge-reports --reporter html ./all-blob-reports
+
+      - name: Publicar el informe como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  publicar-reporte:
+    name: Publicar el informe en GitHub Pages
+    # Solo desde main y solo en push: un pull request no debe sobrescribir el
+    # informe publicado.
+    #
+    # `continue-on-error` es deliberado: si el repositorio todavía no tiene
+    # Pages habilitado, este job falla y la ejecución sigue en verde. El estado
+    # de la insignia debe responder a si los tests pasan, no a si está
+    # configurado el alojamiento del informe.
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: [reporte]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - name: Recuperar el informe
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: playwright-report
+
+      - id: despliegue
+        uses: actions/deploy-pages@v4

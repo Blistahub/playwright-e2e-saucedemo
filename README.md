@@ -13,6 +13,9 @@ Page Object Model, *fixtures* y pruebas dirigidas por datos en TypeScript.
 ![Defectos](https://img.shields.io/badge/defectos_documentados-5-c0392b)
 ![Playwright](https://img.shields.io/badge/Playwright-TypeScript-45ba4b)
 
+**📊 [Informe de la última ejecución](https://blistahub.github.io/playwright-e2e-saucedemo/)** —
+los 78 resultados, navegables, sin clonar el repositorio.
+
 <sub>David Coya Moreno — QA Tester · [LinkedIn](https://linkedin.com/in/david-coya-moreno) ·
 davidcoyamoreno@gmail.com</sub>
 
@@ -275,7 +278,7 @@ test.use({ userName: USERS.problem });   // los hallazgos de problem_user
 | **Comprobación de tipos** | `tsc --noEmit` en 20 s, sin levantar un navegador. Un error de tipos dice «es de código», no «ha fallado la suite» |
 | **E2E ×3** | Matriz de Chromium, Firefox y WebKit en paralelo, con `fail-fast: false`: si Firefox falla, WebKit se ejecuta igual |
 | **Reporte unificado** | Une los tres reportes parciales en un único informe HTML, también —sobre todo— cuando algo ha fallado |
-| **Publicación** | Despliega el informe en GitHub Pages. Va con `continue-on-error` a propósito: si Pages no está habilitado, la insignia debe seguir reflejando si los tests pasan, no si está configurado el alojamiento |
+| **Publicación** | Despliega el informe en [GitHub Pages](https://blistahub.github.io/playwright-e2e-saucedemo/). Va con `continue-on-error` a propósito: si Pages no está habilitado, la insignia debe seguir reflejando si los tests pasan, no si está configurado el alojamiento |
 
 Al fallar un test se conservan **captura, vídeo y traza**. La traza abre el DOM, la red y el estado
 en cada paso: es la diferencia entre «falla en CI y en mi máquina no» y un diagnóstico.

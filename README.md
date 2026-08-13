@@ -3,18 +3,18 @@
 **Suite de regresión de extremo a extremo sobre una tienda en línea: del Page Object Model
 a la integración continua en tres motores de navegador.**
 
-26 casos · 78 ejecuciones por push · **5 defectos reales encontrados y documentados** ·
+31 casos · 93 ejecuciones por push · **5 defectos reales encontrados y documentados** ·
 Page Object Model, *fixtures* y pruebas dirigidas por datos en TypeScript.
 
 [![Tests](https://github.com/Blistahub/playwright-e2e-saucedemo/actions/workflows/tests.yml/badge.svg)](https://github.com/Blistahub/playwright-e2e-saucedemo/actions/workflows/tests.yml)
-![Casos](https://img.shields.io/badge/casos-26-1F3A5F)
-![Ejecuciones](https://img.shields.io/badge/ejecuciones_por_push-78-1F3A5F)
+![Casos](https://img.shields.io/badge/casos-31-1F3A5F)
+![Ejecuciones](https://img.shields.io/badge/ejecuciones_por_push-93-1F3A5F)
 ![Navegadores](https://img.shields.io/badge/navegadores-Chromium_·_Firefox_·_WebKit-2d6a4f)
 ![Defectos](https://img.shields.io/badge/defectos_documentados-5-c0392b)
 ![Playwright](https://img.shields.io/badge/Playwright-TypeScript-45ba4b)
 
 **📊 [Informe de la última ejecución](https://blistahub.github.io/playwright-e2e-saucedemo/)** —
-los 78 resultados, navegables, sin clonar el repositorio.
+los 93 resultados, navegables, sin clonar el repositorio.
 
 <sub>David Coya Moreno — QA Tester · [LinkedIn](https://linkedin.com/in/david-coya-moreno) ·
 davidcoyamoreno@gmail.com</sub>
@@ -26,12 +26,12 @@ davidcoyamoreno@gmail.com</sub>
 | | |
 | --- | --- |
 | **Aplicación** | SauceDemo — tienda de demostración de Sauce Labs |
-| **Casos** | 21 funcionales + 5 de defecto conocido = **26** |
-| **Ejecuciones por push** | **78** — los 26 casos en Chromium, Firefox y WebKit |
-| **Duración** | **~34 s** los tres navegadores en paralelo |
+| **Casos** | 26 funcionales + 5 de defecto conocido = **31** |
+| **Ejecuciones por push** | **93** — los 31 casos en Chromium, Firefox y WebKit |
+| **Duración** | **~38 s** los tres navegadores en paralelo |
 | **Tests inestables** | **0** — ni esperas fijas ni dependencias entre tests |
 | **Defectos encontrados** | **5**, uno de ellos bloquea el flujo de compra |
-| **Cobertura** | Acceso, catálogo, carrito y compra completa. Los huecos se [declaran](docs/02-matriz-de-casos.md#cobertura-por-funcionalidad), no se dan por cubiertos |
+| **Cobertura** | Acceso, catálogo, ficha, carrito y compra completa. Queda [un hueco, declarado](docs/02-matriz-de-casos.md#hueco-declarado) en lugar de darlo por cubierto |
 
 ---
 
@@ -40,12 +40,12 @@ davidcoyamoreno@gmail.com</sub>
 ```bash
 npm ci
 npx playwright install --with-deps
-npm test                  # los 26 casos en los tres navegadores
+npm test                  # los 31 casos en los tres navegadores
 ```
 
 | Comando | Qué hace |
 | --- | --- |
-| `npm test` | Suite completa, tres navegadores |
+| `npm test` | Suite completa, tres navegadores (~38 s) |
 | `npm run test:chromium` | Solo Chromium — el ciclo rápido mientras se escribe |
 | `npm run test:humo` | Los 4 casos `@humo`: el mínimo para decir que la aplicación está en pie |
 | `npm run test:hallazgos` | Los 5 casos de defecto conocido |
@@ -114,6 +114,12 @@ La alternativa habitual —comentar el test, o afirmar el comportamiento defectu
 consagra el defecto como si fuera el requisito, y el día que se arregle la suite se pone en rojo
 por haberlo arreglado.
 
+**Y lo que la técnica no cubre, dicho también:** `test.fail()` da por esperado *cualquier* fallo,
+no solo el previsto. Si se rompiera el acceso de `problem_user`, HAL-02 seguiría fallando y la
+suite seguiría en verde, tapando una avería real. Qué acota ese riesgo y qué queda como revisión
+manual está en [el plan, §6.1](docs/01-plan-de-automatizacion.md#61-lo-que-esta-técnica-no-cubre).
+Una técnica que solo se presenta por sus ventajas está a medio explicar.
+
 ### 3. Ningún selector fuera de `pages/`
 
 El Page Object Model no es una carpeta con ese nombre: son tres reglas que se sostienen.
@@ -159,7 +165,8 @@ inexistente, campo vacío—, no de repetir la misma clase con valores diferente
 
 ### 5. Los oráculos no se preguntan a sí mismos
 
-En CP-17 el total se **recalcula en el test** a partir de las líneas del carrito:
+En CP-17 el total se **recalcula en el test** a partir de las líneas del carrito, sobre tres cestas
+que recorren el rango de precios:
 
 ```ts
 const cartSubtotal = await cartPage.subtotal();   // suma de las líneas
@@ -171,6 +178,12 @@ expect(await overviewPage.tax()).toBeCloseTo(roundToCents(cartSubtotal * TAX_RAT
 Un test que comparase el total de la pantalla con el total de la pantalla pasaría aunque el importe
 fuese erróneo. **Es la diferencia entre comprobar y mirar.**
 
+Y hasta dónde llega ese oráculo también está escrito: los seis productos terminan en `,99`, así que
+**no existe cesta en este catálogo cuyo impuesto redondee a la baja**. La suite no puede distinguir
+el redondeo al más cercano del redondeo sistemático al céntimo superior, y
+[así se declara](data/carts.ts) en lugar de dar por verificada una regla que los datos no permiten
+verificar.
+
 Por el mismo motivo, en la ordenación por precio no se exige una secuencia exacta: dos artículos
 cuestan lo mismo y la aplicación no promete cómo desempata. Se comprueba lo que sí es un
 requisito —que la serie no rompe la monotonía— y que no se ha perdido ningún artículo por el
@@ -181,7 +194,7 @@ camino. Exigir un orden que nadie ha prometido es fabricarse un test inestable.
 - **[Exclusiones justificadas una a una](docs/01-plan-de-automatizacion.md#22-qué-no-se-automatiza--y-por-qué):**
   regresión visual, carga, seguridad ofensiva, accesibilidad. Cada una con su motivo, no omitidas.
 - **El acceso va por la interfaz, pudiendo ir por atajo.** Se comprobó que inyectar la cookie
-  `session-username` funciona y sería más rápido. Se descartó: con veinte casos el ahorro es de
+  `session-username` funciona y sería más rápido. Se descartó: con veintitrés casos el ahorro es de
   segundos, y a cambio la suite dejaría de recorrer cada día el camino por el que entran todos los
   usuarios reales. [La decisión está razonada](docs/01-plan-de-automatizacion.md#33-por-qué-el-acceso-va-por-la-interfaz)
   en el plan, no solo en el código, porque es el tipo de decisión que alguien deshace por error.
@@ -217,7 +230,7 @@ espera molestan, pero no impiden nada.
 | # | Documento | Qué contiene |
 | :---: | --- | --- |
 | 01 | [Plan de automatización](docs/01-plan-de-automatizacion.md) | Alcance, **exclusiones justificadas**, estrategia, arquitectura, criterios de salida y 5 riesgos |
-| 02 | [Matriz de casos](docs/02-matriz-de-casos.md) | Los 26 casos con su técnica de diseño y su fichero · cobertura y huecos declarados |
+| 02 | [Matriz de casos](docs/02-matriz-de-casos.md) | Los 31 casos con su técnica de diseño y su fichero · cobertura y el hueco declarado |
 | 03 | [Hallazgos](docs/03-hallazgos.md) | Los 5 defectos con reproducción, evidencia e hipótesis descartadas |
 | 04 | [Política de tests inestables](docs/04-politica-de-tests-inestables.md) | Qué se hace cuando aparece uno, y qué no se hace nunca |
 
@@ -231,12 +244,13 @@ playwright-e2e-saucedemo/
 │   ├── BasePage.ts          Cabecera y menú, comunes a todas las vistas
 │   ├── LoginPage.ts
 │   ├── InventoryPage.ts
+│   ├── ProductDetailPage.ts
 │   ├── CartPage.ts
 │   ├── CheckoutPage.ts             paso 1 · datos del comprador
 │   ├── CheckoutOverviewPage.ts     paso 2 · resumen e importes
 │   └── CheckoutCompletePage.ts     paso 3 · confirmación
 ├── fixtures/        Inyección de los Page Objects y apertura de sesión
-├── data/            Usuarios, productos y juegos de datos, fuera de los tests
+├── data/            Usuarios, productos, cestas y juegos de datos
 ├── support/         Utilidades sin estado (conversión de importes)
 ├── tests/           Los casos, que solo describen comportamiento
 ├── docs/            Plan, matriz, hallazgos y política de inestabilidad
@@ -245,8 +259,9 @@ playwright-e2e-saucedemo/
 
 ### La fixture de sesión
 
-El acceso no se repite en veinte tests: es una *fixture* automática que se ejecuta antes de cada
-uno, con el usuario como opción de Playwright.
+El acceso no se repite en veintitrés tests: es una *fixture* automática que se ejecuta antes de
+cada uno, con el usuario como opción de Playwright y tipado a los seis usuarios que existen, de
+modo que un nombre mal escrito es un error de compilación y no un test que falla en el acceso.
 
 ```ts
 export const loggedInTest = test.extend<SessionOptions & { session: void }>({
@@ -276,7 +291,7 @@ test.use({ userName: USERS.problem });   // los hallazgos de problem_user
 | Job | Qué hace |
 | --- | --- |
 | **Comprobación de tipos** | `tsc --noEmit` en 20 s, sin levantar un navegador. Un error de tipos dice «es de código», no «ha fallado la suite» |
-| **E2E ×3** | Matriz de Chromium, Firefox y WebKit en paralelo, con `fail-fast: false`: si Firefox falla, WebKit se ejecuta igual |
+| **E2E ×3** | Matriz de Chromium, Firefox y WebKit en paralelo, con `fail-fast: false`: si Firefox falla, WebKit se ejecuta igual. Cada fallo se anota sobre el diff del pull request |
 | **Reporte unificado** | Une los tres reportes parciales en un único informe HTML, también —sobre todo— cuando algo ha fallado |
 | **Publicación** | Despliega el informe en [GitHub Pages](https://blistahub.github.io/playwright-e2e-saucedemo/). Va con `continue-on-error` a propósito: si Pages no está habilitado, la insignia debe seguir reflejando si los tests pasan, no si está configurado el alojamiento |
 

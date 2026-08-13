@@ -24,7 +24,8 @@ push que lo introduce, y que el resultado sea legible sin abrir el código.
 | Acceso y cierre de sesión | CP-01 … CP-07 | Es la puerta de entrada: si falla, ningún otro flujo es alcanzable |
 | Carrito | CP-08 … CP-11 | Es donde se acumula el estado, y el estado es donde aparecen los fallos de persistencia |
 | Ordenación del catálogo | CP-12 … CP-15 | Lógica de presentación con cuatro variantes: coste bajo por caso, buen detector de regresiones |
-| Proceso de compra | CP-16 … CP-21 | Es el flujo que genera ingreso. Un fallo aquí es un fallo de negocio, no de interfaz |
+| Proceso de compra | CP-16 … CP-22 | Es el flujo que genera ingreso. Un fallo aquí es un fallo de negocio, no de interfaz |
+| Ficha de producto | CP-23 … CP-24 | Es una de las dos vías por las que se llena el carrito, así que está en el camino de compra |
 | Defectos conocidos | HAL-01 … HAL-05 | Fijan en código el comportamiento correcto que hoy no se cumple (ver §6) |
 
 ### 2.2 Qué NO se automatiza — y por qué
@@ -48,13 +49,14 @@ Delimitar es la mitad del trabajo. Cada exclusión lleva su motivo:
 ### 3.1 Dónde encaja esta suite
 
 Es la capa alta de la pirámide: pocos tests, caros, que ejercitan el sistema completo por la
-interfaz. Con 26 casos por navegador la suite tarda unos 30 segundos en local. Ese presupuesto es
-la restricción de diseño principal, y de ahí salen dos reglas:
+interfaz. Con 31 casos por navegador, los tres motores en paralelo tardan unos 38 segundos en
+local. Ese presupuesto es la restricción de diseño principal, y de ahí salen dos reglas:
 
 - **Un test comprueba un comportamiento.** No se encadenan diez verificaciones en un caso porque
   la primera que falle oculta las nueve siguientes.
-- **Nada se prueba dos veces por la interfaz.** El acceso se verifica en CP-01; los otros veinte
-  casos lo dan por hecho a través de la *fixture* de sesión.
+- **Nada se prueba dos veces por la interfaz.** El acceso se verifica en CP-01; los demás casos lo
+  dan por hecho a través de la *fixture* de sesión. Es también el motivo de que «Reset App State»
+  quede fuera: vaciaría el carrito por una vía que CP-10 ya cubre por la que usa un cliente.
 
 ### 3.2 Técnicas de diseño aplicadas
 
@@ -63,9 +65,9 @@ Los casos se derivan; no se improvisan:
 | Técnica | Casos | Ejemplo |
 | --- | :---: | --- |
 | Particiones de equivalencia | CP-02 … CP-06 | Cinco clases distintas de acceso rechazado —bloqueado, contraseña errónea, usuario inexistente, campo vacío—, no cinco contraseñas malas |
-| Transición de estados | CP-08, CP-10, CP-11, CP-21 | Ciclo de vida del carrito: vacío → con artículos → vacío, y su persistencia al navegar |
+| Transición de estados | CP-08, CP-10, CP-11, CP-21, CP-22, CP-24 | Ciclo de vida del carrito: vacío → con artículos → vacío, y su persistencia al navegar y al cancelar |
 | Tabla de decisión | CP-18 … CP-20 | Un caso por campo obligatorio del checkout, dejando vacío solo el campo bajo prueba |
-| Comparación con oráculo calculado | CP-17 | El total se recalcula en el test a partir de las líneas del carrito, en lugar de leerlo de la propia pantalla |
+| Comparación con oráculo calculado | CP-17.1 … CP-17.3 | El total se recalcula en el test a partir de las líneas del carrito, sobre tres cestas del rango de precios, en lugar de leerlo de la propia pantalla |
 | Conjetura de errores | HAL-01 … HAL-05 | Los usuarios que el fabricante rompió a propósito |
 
 ### 3.3 Por qué el acceso va por la interfaz
@@ -74,7 +76,7 @@ Se comprobó que basta con inyectar la cookie `session-username` para entrar dir
 catálogo, sin pasar por el formulario. Sería más rápido y es el patrón que recomienda Playwright
 para suites grandes. **Aquí se ha descartado**, por dos motivos:
 
-1. Con veinte casos que necesitan sesión, el ahorro total es de unos segundos: no compensa perder
+1. Con veintitrés casos que necesitan sesión, el ahorro total es de unos segundos: no compensa perder
    la ejecución diaria del camino por el que entran todos los usuarios reales.
 2. El atajo depende de un detalle interno —el nombre de la cookie— que la aplicación puede cambiar
    sin avisar. Ese día la suite entera dejaría de entrar, y el diagnóstico sería mucho menos obvio
@@ -134,7 +136,7 @@ nadie lo "arregle" de vuelta.
 
 La ejecución se considera correcta cuando:
 
-- Los 21 casos funcionales pasan en los tres navegadores.
+- Los 26 casos funcionales pasan en los tres navegadores.
 - Los 5 casos de hallazgo fallan **exactamente como está previsto**. Si alguno pasa, la ejecución
   se marca en rojo: significa que el defecto se ha corregido y hay que actualizar la suite.
 - No hay tests marcados como inestables. Uno solo abre la investigación descrita en la política.
@@ -159,6 +161,28 @@ significa «se espera que este test falle». Con eso:
 La alternativa habitual —comentar el test, o afirmar el comportamiento defectuoso para que pase—
 tiene el problema opuesto: consagra el defecto como si fuera el requisito, y el día que se corrija,
 la suite se pone en rojo por haberlo arreglado.
+
+### 6.1 Lo que esta técnica no cubre
+
+`test.fail()` marca como esperado **cualquier** fallo del test, no solo el que se pretendía
+documentar. Si mañana se rompiera el acceso de `problem_user`, o cambiara el `data-test` del botón
+«Checkout», HAL-02 seguiría fallando y la suite seguiría en verde: el hallazgo taparía una avería
+distinta y real.
+
+Es el precio de la técnica y conviene tenerlo escrito. Tres cosas lo acotan:
+
+- **Los pasos previos son compartidos.** Acceso, alta en el carrito y navegación al checkout son
+  los mismos que ejercitan CP-01, CP-08 y CP-16 sin `test.fail()`. Una avería en ellos pondría en
+  rojo esos casos aunque los hallazgos la disimularan.
+- **Las aserciones son específicas.** Comparan un valor concreto, no «que algo falle». Al abrir el
+  informe se ve *qué* aserción falló, y una distinta de la esperada delata el problema.
+- **Un hallazgo que pasa rompe la ejecución.** El fallo inesperado es el que avisa de que hay que
+  volver a mirar.
+
+Lo que sí queda descartado es automatizar la vigilancia de este riesgo dentro de la propia suite:
+Playwright no distingue «falló por el motivo previsto» de «falló por otro». Revisar los mensajes de
+los cinco hallazgos cuando alguno cambie de duración o de aserción es un paso manual, y se declara
+como tal en vez de darlo por resuelto.
 
 ---
 

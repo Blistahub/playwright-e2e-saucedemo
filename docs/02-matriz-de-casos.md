@@ -1,6 +1,6 @@
 # Matriz de casos
 
-26 casos por navegador × 3 navegadores = **78 ejecuciones** por cada push.
+31 casos por navegador × 3 navegadores = **93 ejecuciones** por cada push.
 
 Los identificadores no se reutilizan. Si un caso se retira, su número se queda libre: reasignarlo
 rompería la trazabilidad de cualquier conversación o informe que lo mencionara.
@@ -27,11 +27,17 @@ rompería la trazabilidad de cualquier conversación o informe que lo mencionara
 | CP-14 | Ordenar por precio de menor a mayor | [`sorting.spec.ts`](../tests/sorting.spec.ts) | Dirigido por datos | |
 | CP-15 | Ordenar por precio de mayor a menor | [`sorting.spec.ts`](../tests/sorting.spec.ts) | Dirigido por datos | |
 | CP-16 | Compra completa de extremo a extremo | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Camino principal | `@humo` |
-| CP-17 | El resumen calcula subtotal, impuesto y total | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Oráculo calculado | |
+| CP-17 | El resumen calcula subtotal, impuesto y total — **3 juegos de datos** (`.1` tramo bajo · `.2` tramo alto · `.3` dos artículos) | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Oráculo calculado · dirigido por datos | |
 | CP-18 | El checkout rechaza los datos sin nombre | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Tabla de decisión | |
 | CP-19 | El checkout rechaza los datos sin apellido | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Tabla de decisión | |
 | CP-20 | El checkout rechaza los datos sin código postal | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Tabla de decisión | |
-| CP-21 | Cancelar en el paso de datos devuelve al carrito sin perderlo | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Transición de estados | |
+| CP-21 | Cancelar en el paso de datos devuelve al **carrito** sin perderlo | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Transición de estados | |
+| CP-22 | Cancelar en el resumen devuelve al **catálogo** sin perder el carrito | [`checkout.spec.ts`](../tests/checkout.spec.ts) | Transición de estados | |
+| CP-23 | La ficha muestra el producto y permite añadirlo al carrito | [`product-detail.spec.ts`](../tests/product-detail.spec.ts) | Camino principal | |
+| CP-24 | Volver al catálogo desde la ficha conserva el carrito | [`product-detail.spec.ts`](../tests/product-detail.spec.ts) | Persistencia de estado | |
+
+CP-21 y CP-22 no se unifican en un caso parametrizado a propósito: el mismo verbo —«Cancel»—
+lleva a **destinos distintos** según el paso, y esa diferencia es justo lo que hay que fijar.
 
 ## Casos de hallazgo
 
@@ -53,14 +59,23 @@ en [`03-hallazgos.md`](03-hallazgos.md).
 | Funcionalidad | Casos | Cubierto |
 | --- | :---: | --- |
 | Autenticación | 7 | Acceso válido, cinco clases de rechazo y cierre de sesión con verificación de ruta protegida |
-| Catálogo | 4 | Los cuatro criterios de ordenación. **No cubierto:** la vista de detalle de producto |
-| Carrito | 4 | Alta, baja, contador y persistencia. **No cubierto:** el botón «Reset App State» del menú |
-| Checkout | 6 | Compra completa, cálculo de importes, tres campos obligatorios y cancelación. **No cubierto:** el botón «Cancel» del paso de resumen |
+| Catálogo | 4 | Los cuatro criterios de ordenación |
+| Ficha de producto | 2 | Coherencia con el catálogo, alta desde la ficha y persistencia al volver |
+| Carrito | 4 | Alta, baja, contador y persistencia |
+| Checkout | 9 | Compra completa, cálculo de importes con 3 cestas, tres campos obligatorios y las dos cancelaciones |
 | Defectos conocidos | 5 | Los cinco reproducibles encontrados en tres de los seis usuarios |
 
-Los huecos se declaran en lugar de darlos por cubiertos. Ninguno de los tres está en un camino que
-lleve a completar una compra, que es el criterio de selección declarado en el
-[plan](01-plan-de-automatizacion.md#1-objetivo).
+### Hueco declarado
+
+Queda **uno**, y se declara en lugar de darlo por cubierto:
+
+- **«Reset App State»** (menú lateral). No está en ningún camino que lleve a completar una compra
+  —que es el criterio de selección del [plan](01-plan-de-automatizacion.md#1-objetivo)—, y su
+  efecto, vaciar el carrito, ya queda verificado por CP-10 a través de la vía que sí usa un
+  cliente. Automatizarlo añadiría un caso que comprueba dos veces lo mismo por dos caminos.
+
+El localizador de ese enlace **no está declarado** en `pages/BasePage.ts`. Un localizador sin uso
+es deuda: da la impresión de que algo está cubierto cuando no lo está.
 
 ---
 

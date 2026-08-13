@@ -5,12 +5,14 @@ import { CartPage } from '../pages/CartPage';
 import { CheckoutPage } from '../pages/CheckoutPage';
 import { CheckoutOverviewPage } from '../pages/CheckoutOverviewPage';
 import { CheckoutCompletePage } from '../pages/CheckoutCompletePage';
-import { PASSWORD, USERS } from '../data/users';
+import { ProductDetailPage } from '../pages/ProductDetailPage';
+import { PASSWORD, USERS, type UserName } from '../data/users';
 
 /** Page Objects que se inyectan en los tests ya construidos sobre la página. */
 interface PageObjects {
   loginPage: LoginPage;
   inventoryPage: InventoryPage;
+  productDetailPage: ProductDetailPage;
   cartPage: CartPage;
   checkoutPage: CheckoutPage;
   overviewPage: CheckoutOverviewPage;
@@ -29,6 +31,9 @@ export const test = base.extend<PageObjects>({
   },
   inventoryPage: async ({ page }, use) => {
     await use(new InventoryPage(page));
+  },
+  productDetailPage: async ({ page }, use) => {
+    await use(new ProductDetailPage(page));
   },
   cartPage: async ({ page }, use) => {
     await use(new CartPage(page));
@@ -49,8 +54,12 @@ interface SessionOptions {
    * Usuario con el que se abre la sesión. Se declara como opción de Playwright,
    * así que un bloque de tests puede cambiarlo con
    * `loggedInTest.use({ userName: USERS.problem })` sin tocar los tests.
+   *
+   * El tipo es `UserName` y no `string` a propósito: un usuario mal escrito
+   * dejaría de ser un error de compilación y pasaría a ser un test que falla
+   * en el acceso por un motivo que no tiene nada que ver con lo que prueba.
    */
-  userName: string;
+  userName: UserName;
 }
 
 /**

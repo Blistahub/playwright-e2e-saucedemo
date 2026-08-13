@@ -30,14 +30,13 @@ export default defineConfig({
   timeout: 30_000,
   expect: { timeout: 7_000 },
 
-  reporter: process.env.CI
-    ? [
-        ['list'],
-        ['html', { open: 'never', outputFolder: 'playwright-report' }],
-        /* Anota los fallos directamente sobre el diff del pull request. */
-        ['github'],
-      ]
-    : [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
+  /* Reporters de la ejecución local. En CI no se usan estos: el workflow pasa
+     `--reporter=blob,github`, que los sustituye por completo. El formato blob
+     es el que permite unir después los tres navegadores en un solo informe, y
+     el reporter `github` es el que anota los fallos sobre el diff del pull
+     request. Declararlos aquí además de allí daría la falsa impresión de que
+     esta rama de la configuración interviene en CI, y no interviene. */
+  reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
 
   use: {
     baseURL: 'https://www.saucedemo.com',

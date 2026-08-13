@@ -61,8 +61,13 @@ jobs:
       - name: Instalar navegador
         run: npx playwright install --with-deps ${{ matrix.project }}
 
+      # `blob` es el formato intermedio que permite unir después los tres
+      # navegadores; `github` anota cada fallo sobre el diff del pull request.
+      # Se pasan aquí y no en playwright.config.ts porque --reporter sustituye
+      # a la configuración entera: declararlo en los dos sitios haría creer que
+      # el config interviene en CI cuando no interviene.
       - name: Ejecutar la suite
-        run: npx playwright test --project=${{ matrix.project }} --reporter=blob
+        run: npx playwright test --project=${{ matrix.project }} --reporter=blob,github
 
       # El reporte "blob" es el formato intermedio que permite unir después
       # los resultados de los tres navegadores en un único informe HTML.

@@ -96,6 +96,7 @@ fixtures/    Inyección de los Page Objects y apertura de sesión
 data/        Juegos de datos y mensajes esperados, fuera de los tests
 support/     Utilidades sin estado (conversión de importes)
 tests/       Los casos, que solo describen comportamiento
+tools/       Verificador de consistencia entre la suite y esta documentación
 ```
 
 Tres reglas sostienen esta separación:
@@ -140,6 +141,9 @@ La ejecución se considera correcta cuando:
 - Los 5 casos de hallazgo fallan **exactamente como está previsto**. Si alguno pasa, la ejecución
   se marca en rojo: significa que el defecto se ha corregido y hay que actualizar la suite.
 - No hay tests marcados como inestables. Uno solo abre la investigación descrita en la política.
+- `npm run verificar` termina sin incoherencias: los casos, las cifras, los enlaces y los anclajes
+  de esta documentación siguen correspondiéndose con la suite real. Un documento que ha dejado de
+  ser cierto es un entregable defectuoso, aunque los tests pasen.
 
 ---
 

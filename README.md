@@ -52,6 +52,7 @@ npm test                  # los 31 casos en los tres navegadores
 | `npm run test:ui` | Modo interactivo, para depurar paso a paso |
 | `npm run report` | Abre el último informe HTML |
 | `npm run typecheck` | Comprobación de tipos sin levantar navegadores |
+| `npm run verificar` | Comprueba que la documentación siga diciendo la verdad sobre la suite |
 
 ---
 
@@ -189,7 +190,30 @@ cuestan lo mismo y la aplicación no promete cómo desempata. Se comprueba lo qu
 requisito —que la serie no rompe la monotonía— y que no se ha perdido ningún artículo por el
 camino. Exigir un orden que nadie ha prometido es fabricarse un test inestable.
 
-### 6. El criterio se ve en lo que se deja fuera
+### 6. La documentación se verifica sola
+
+Una matriz de treinta casos con referencias cruzadas se desincroniza sola a la tercera
+modificación: se añade un caso y la cifra del README se queda atrás, se renombra un fichero y un
+enlace del plan deja de resolver. **Nada de eso rompe un test**, así que no se detecta hasta que
+alguien lee la documentación y descubre que miente.
+
+```bash
+npm run verificar
+# Casos: 31 (26 funcionales · 5 hallazgos) | Navegadores: 3 | Ejecuciones: 93 | ...
+# Documentacion consistente con la suite.
+```
+
+[`tools/verificar.mjs`](tools/verificar.mjs) le pregunta a Playwright qué casos existen **de
+verdad** —`--list`, que no levanta navegadores ni toca la red— y comprueba cuatro cosas contra esa
+respuesta: que todo caso de la suite está en la matriz y al revés, que las cifras declaradas son
+las reales, que los enlaces internos resuelven y que los anclajes de sección apuntan a encabezados
+que existen. Devuelve 1 si algo no cuadra, y corre en cada push.
+
+La primera incoherencia que encontró fue **suya**: daba por roto un anclaje correcto porque
+colapsaba los espacios consecutivos al generar el enlace, y GitHub no lo hace. Un verificador que
+señala fallos inexistentes enseña a ignorarlo, que es la única forma de que deje de servir.
+
+### 7. El criterio se ve en lo que se deja fuera
 
 - **[Exclusiones justificadas una a una](docs/01-plan-de-automatizacion.md#22-qué-no-se-automatiza--y-por-qué):**
   regresión visual, carga, seguridad ofensiva, accesibilidad. Cada una con su motivo, no omitidas.
@@ -254,6 +278,7 @@ playwright-e2e-saucedemo/
 ├── support/         Utilidades sin estado (conversión de importes)
 ├── tests/           Los casos, que solo describen comportamiento
 ├── docs/            Plan, matriz, hallazgos y política de inestabilidad
+├── tools/           Verificador de consistencia entre la suite y sus documentos
 └── .github/workflows/tests.yml
 ```
 
@@ -290,7 +315,7 @@ test.use({ userName: USERS.problem });   // los hallazgos de problem_user
 
 | Job | Qué hace |
 | --- | --- |
-| **Comprobación de tipos** | `tsc --noEmit` en 20 s, sin levantar un navegador. Un error de tipos dice «es de código», no «ha fallado la suite» |
+| **Tipos y documentación** | `tsc --noEmit` y `npm run verificar` en menos de 20 s, sin levantar un navegador. Un fallo aquí dice «es de código» o «la documentación se ha quedado atrás», no «ha fallado la suite» |
 | **E2E ×3** | Matriz de Chromium, Firefox y WebKit en paralelo, con `fail-fast: false`: si Firefox falla, WebKit se ejecuta igual. Cada fallo se anota sobre el diff del pull request |
 | **Reporte unificado** | Une los tres reportes parciales en un único informe HTML, también —sobre todo— cuando algo ha fallado |
 | **Publicación** | Despliega el informe en [GitHub Pages](https://blistahub.github.io/playwright-e2e-saucedemo/). Va con `continue-on-error` a propósito: si Pages no está habilitado, la insignia debe seguir reflejando si los tests pasan, no si está configurado el alojamiento |

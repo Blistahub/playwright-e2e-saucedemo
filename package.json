@@ -15,7 +15,8 @@
     "test:humo": "playwright test --grep @humo",
     "test:hallazgos": "playwright test --grep @hallazgo",
     "report": "playwright show-report",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verificar": "node tools/verificar.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

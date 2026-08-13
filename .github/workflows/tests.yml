@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   calidad:
-    name: Comprobación de tipos
+    name: Tipos y documentación
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -30,11 +30,18 @@ jobs:
 
       - run: npm ci
 
-      # Un error de tipos se detecta en veinte segundos y sin levantar un solo
-      # navegador. Va en su propio job para que el fallo diga "es de código",
-      # no "ha fallado algo en la suite".
+      # Un error de tipos se detecta en menos de veinte segundos y sin levantar
+      # un solo navegador. Va en su propio job para que el fallo diga "es de
+      # código", no "ha fallado algo en la suite".
       - name: Comprobar tipos
         run: npm run typecheck
+
+      # Comprueba que la documentación siga diciendo la verdad sobre la suite:
+      # casos, cifras, enlaces y anclajes. No levanta navegadores ni toca la
+      # red, así que cuesta segundos. Una matriz de treinta casos con
+      # referencias cruzadas se desincroniza sola, y eso no rompe ningún test.
+      - name: Verificar la documentación
+        run: npm run verificar
 
   e2e:
     name: E2E · ${{ matrix.project }}

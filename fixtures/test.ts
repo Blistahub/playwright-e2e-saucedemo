@@ -66,15 +66,15 @@ interface SessionOptions {
  * `loggedInTest` — con la sesión ya iniciada.
  *
  * La fixture `session` es automática: se ejecuta antes de cada test sin que
- * este tenga que pedirla. Así el acceso deja de aparecer en veinte tests que
- * no lo están probando, y el título del test describe solo lo que comprueba.
+ * este tenga que pedirla. Así el acceso deja de aparecer en los veintitrés
+ * casos que no lo están probando, y el título de cada test describe solo lo
+ * que comprueba.
  *
  * El acceso se hace por la interfaz y no inyectando la cookie de sesión, que
  * también funcionaría y sería más rápido. El motivo está razonado en
- * `docs/01-plan-de-automatizacion.md` (§ «Por qué el acceso va por la
- * interfaz»): con seis tests de carrito el ahorro es de segundos, y a cambio
- * la suite dejaría de recorrer cada día el camino por el que entran todos los
- * usuarios reales.
+ * `docs/01-plan-de-automatizacion.md`, § 3.3: a esta escala el ahorro es de
+ * segundos, y a cambio la suite dejaría de recorrer cada día el camino por el
+ * que entran todos los usuarios reales.
  */
 export const loggedInTest = test.extend<SessionOptions & { session: void }>({
   userName: [USERS.standard, { option: true }],

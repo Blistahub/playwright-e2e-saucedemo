@@ -6,8 +6,10 @@ import { CATALOG_SIZE } from '../data/products';
 /**
  * Acceso y cierre de sesión.
  *
- * Es el único fichero que usa `test` en lugar de `loggedInTest`: aquí la
- * sesión es el objeto de la prueba, no una precondición.
+ * Usa `test` en lugar de `loggedInTest` porque aquí la sesión es el objeto de
+ * la prueba, no una precondición: abrirla por adelantado dejaría sin nada que
+ * comprobar. El otro fichero que lo hace, y por un motivo parecido, es
+ * `findings-performance.spec.ts`, que necesita cronometrar el acceso.
  */
 test.describe('Acceso a la aplicación', () => {
   test('CP-01 · el usuario estándar accede y aterriza en el catálogo @humo', async ({

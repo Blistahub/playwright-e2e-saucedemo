@@ -20,6 +20,10 @@ export const CATALOG_SIZE = 6;
 
 /**
  * Tipo impositivo aplicado por SauceDemo en el resumen de compra.
- * Verificado contra la aplicación: 37,98 $ → 3,04 $ de impuesto.
+ *
+ * Verificado contra la aplicación en cuatro cestas distintas antes de fijarlo
+ * aquí —7,99 $, 29,99 $, 31,98 $ y 59,98 $—, no deducido de una sola. Lo que
+ * esos datos **no** permiten determinar es la regla de redondeo: está razonado
+ * en `data/carts.ts`, junto a los juegos de datos de CP-17.
  */
 export const TAX_RATE = 0.08;

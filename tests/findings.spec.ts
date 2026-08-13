@@ -21,6 +21,12 @@ import { SORT_OPTIONS } from '../pages/InventoryPage';
  *  3. La aserción documenta el comportamiento esperado en código ejecutable,
  *     no en una frase de un documento que nadie vuelve a abrir.
  *
+ * La técnica tiene un coste que conviene tener presente al leer estos tests:
+ * `test.fail()` da por esperado **cualquier** fallo, no solo el previsto. Si
+ * se rompiera el acceso de `problem_user`, HAL-02 seguiría fallando y la suite
+ * seguiría en verde, tapando una avería real. Qué acota ese riesgo y qué queda
+ * como revisión manual está en `docs/01-plan-de-automatizacion.md`, § 6.1.
+ *
  * El detalle de cada defecto —severidad, impacto y reproducción— está en
  * `docs/03-hallazgos.md`.
  */

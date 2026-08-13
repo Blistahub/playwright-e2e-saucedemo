@@ -4,8 +4,8 @@ import type { Locator, Page } from '@playwright/test';
  * Base común a todas las vistas posteriores al acceso.
  *
  * Concentra la cabecera y el menú lateral, que están presentes en todas ellas.
- * Sin esta clase, el localizador del carrito estaría repetido en cuatro Page
- * Objects y un rediseño obligaría a corregirlo cuatro veces.
+ * Sin esta clase, el localizador del carrito estaría repetido en las seis Page
+ * Objects que heredan de aquí, y un rediseño obligaría a corregirlo seis veces.
  */
 export abstract class BasePage {
   protected readonly page: Page;

@@ -45,7 +45,7 @@ test.describe('Acceso a la aplicación', () => {
       /* No basta con que salga el error: hay que confirmar que no se ha
          entrado. Un mensaje de error sobre una sesión abierta sería peor
          defecto que el propio mensaje. */
-      await expect(page).toHaveURL('https://www.saucedemo.com/');
+      await expect(page).toHaveURL('/');
     });
   }
 

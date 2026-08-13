@@ -17,7 +17,6 @@ export abstract class BasePage {
   readonly cartBadge: Locator;
   readonly menuButton: Locator;
   readonly logoutLink: Locator;
-  readonly resetStateLink: Locator;
 
   protected constructor(page: Page) {
     this.page = page;
@@ -32,7 +31,11 @@ export abstract class BasePage {
     this.menuButton = page.getByRole('button', { name: 'Open Menu' });
 
     this.logoutLink = page.getByTestId('logout-sidebar-link');
-    this.resetStateLink = page.getByTestId('reset-sidebar-link');
+
+    /* El menú expone además «Reset App State». No se declara aquí porque
+       ningún caso lo usa, y un localizador sin uso es deuda que se arrastra:
+       parece cubierto lo que no lo está. Queda como hueco declarado en
+       docs/02-matriz-de-casos.md. */
   }
 
   async openCart(): Promise<void> {

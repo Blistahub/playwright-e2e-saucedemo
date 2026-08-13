@@ -48,7 +48,7 @@ test.describe('Rendimiento del acceso', () => {
        la duda de si lo lento era la aplicación o la máquina. */
     const standardMs = await measureLogin(loginPage, inventoryPage, USERS.standard);
     await inventoryPage.logout();
-    await expect(page).toHaveURL('https://www.saucedemo.com/');
+    await expect(page).toHaveURL('/');
 
     const glitchMs = await measureLogin(loginPage, inventoryPage, USERS.performanceGlitch);
 

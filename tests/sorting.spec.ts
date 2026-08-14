@@ -98,7 +98,12 @@ test.describe('Ordenación del catálogo', () => {
         isOrdered(prices, scenario.direction),
         `Los precios no están ordenados ${scenario.description}: ${prices.join(', ')}`,
       ).toBe(true);
-      expect([...(await inventoryPage.visibleNames())].sort()).toEqual([...NAMES_A_TO_Z].sort());
+
+      /* Ordenar no puede perder ni duplicar artículos: se comparan los dos
+         conjuntos, ordenados alfabéticamente para que la comparación no
+         dependa del criterio que acaba de aplicarse. */
+      const names = await inventoryPage.visibleNames();
+      expect(names.sort()).toEqual([...NAMES_A_TO_Z].sort());
     });
   }
 });

@@ -49,7 +49,14 @@ export class CartPage extends BasePage {
     return (await this.itemPrices.allInnerTexts()).map(parsePrice);
   }
 
-  /** Suma de los precios de los artículos del carrito. */
+  /**
+   * Suma de los precios de los artículos del carrito.
+   *
+   * No multiplica por la cantidad porque SauceDemo no permite repetir un
+   * artículo: el botón pasa a «Remove» tras añadirlo, y la línea siempre
+   * muestra una unidad. Eso queda comprobado en CP-09, así que este cálculo
+   * se apoya en una premisa verificada y no en una suposición.
+   */
   async subtotal(): Promise<number> {
     return (await this.visiblePrices()).reduce((total, price) => total + price, 0);
   }

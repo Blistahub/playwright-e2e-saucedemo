@@ -25,7 +25,19 @@ export class InventoryPage extends BasePage {
     this.items = page.getByTestId('inventory-item');
     this.itemNames = page.getByTestId('inventory-item-name');
     this.itemPrices = page.getByTestId('inventory-item-price');
+
+    /* El único selector por clase CSS de todo el repositorio, y va razonado
+       porque es la excepción a la regla.
+       Las imágenes sí llevan `data-test`, pero con el nombre del producto
+       incrustado —`inventory-item-sauce-labs-backpack-img`—, así que no hay
+       un identificador común con el que recogerlas todas. Las alternativas
+       eran componer seis localizadores a partir de los nombres, replicando la
+       transformación que hace la aplicación, o usar `img` a secas, que
+       atraparía también el logotipo de la cabecera. La clase del contenedor
+       es lo más estable de las tres. Solo la usa HAL-01, para comprobar que
+       las seis imágenes son distintas. */
     this.itemImages = page.locator('.inventory_item_img img');
+
     this.sortDropdown = page.getByTestId('product-sort-container');
   }
 
@@ -58,6 +70,7 @@ export class InventoryPage extends BasePage {
     return this.itemCard(productName).getByRole('button');
   }
 
+  /** Abre la ficha del producto pulsando su nombre, como haría un cliente. */
   async openProduct(productName: string): Promise<void> {
     await this.itemCard(productName).getByTestId('inventory-item-name').click();
   }

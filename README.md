@@ -51,8 +51,7 @@ npm test                  # los 31 casos en los tres navegadores
 | `npm run test:hallazgos` | Los 5 casos de defecto conocido |
 | `npm run test:ui` | Modo interactivo, para depurar paso a paso |
 | `npm run report` | Abre el último informe HTML |
-| `npm run typecheck` | Comprobación de tipos sin levantar navegadores |
-| `npm run verificar` | Comprueba que la documentación siga diciendo la verdad sobre la suite |
+| `npm run calidad` | Tipos, reglas de la suite y consistencia de la documentación, sin levantar navegadores |
 
 ---
 
@@ -190,28 +189,42 @@ cuestan lo mismo y la aplicación no promete cómo desempata. Se comprueba lo qu
 requisito —que la serie no rompe la monotonía— y que no se ha perdido ningún artículo por el
 camino. Exigir un orden que nadie ha prometido es fabricarse un test inestable.
 
-### 6. La documentación se verifica sola
+### 6. Lo que este README afirma, la CI lo comprueba
 
-Una matriz de treinta casos con referencias cruzadas se desincroniza sola a la tercera
-modificación: se añade un caso y la cifra del README se queda atrás, se renombra un fichero y un
-enlace del plan deja de resolver. **Nada de eso rompe un test**, así que no se detecta hasta que
-alguien lee la documentación y descubre que miente.
+Un documento que promete algo sobre el código envejece mal. Las promesas de este repositorio que
+se pueden comprobar con una máquina, se comprueban con una máquina — todo ello en un job que tarda
+segundos y no levanta un solo navegador:
 
 ```bash
-npm run verificar
-# Casos: 31 (26 funcionales · 5 hallazgos) | Navegadores: 3 | Ejecuciones: 93 | ...
-# Documentacion consistente con la suite.
+npm run calidad     # tipos + reglas de la suite + consistencia de la documentación
 ```
 
-[`tools/verificar.mjs`](tools/verificar.mjs) le pregunta a Playwright qué casos existen **de
-verdad** —`--list`, que no levanta navegadores ni toca la red— y comprueba cuatro cosas contra esa
-respuesta: que todo caso de la suite está en la matriz y al revés, que las cifras declaradas son
-las reales, que los enlaces internos resuelven y que los anclajes de sección apuntan a encabezados
-que existen. Devuelve 1 si algo no cuadra, y corre en cada push.
+**Las reglas convierten los criterios en errores.** [`eslint.config.mjs`](eslint.config.mjs) solo
+incluye reglas que impidan un fallo real, no que uniformen el estilo:
 
-La primera incoherencia que encontró fue **suya**: daba por roto un anclaje correcto porque
-colapsaba los espacios consecutivos al generar el enlace, y GitHub no lo hace. Un verificador que
-señala fallos inexistentes enseña a ignorarlo, que es la única forma de que deje de servir.
+| Regla | Qué impide |
+| --- | --- |
+| `no-floating-promises` · `missing-playwright-await` | Un `expect` sin `await` **pasa siempre**: la aserción se evalúa cuando el test ya terminó. Es el peor fallo posible en una suite |
+| `no-wait-for-timeout` | La espera fija que hace pasar el test hoy en esta máquina y fallar el día que el runner vaya cargado |
+| `no-focused-test` | El `test.only` olvidado que deja la suite en verde ocultando el resto |
+| `expect-expect` | El test que solo navega y comprueba únicamente que la aplicación no lanza una excepción |
+| `no-conditional-expect` | La aserción dentro de un `if` que puede no ejecutarse nunca |
+
+**El verificador comprueba que la documentación no mienta.** Una matriz de treinta casos con
+referencias cruzadas se desincroniza sola a la tercera modificación: se añade un caso y la cifra
+del README se queda atrás, se renombra un fichero y un enlace del plan deja de resolver. **Nada de
+eso rompe un test**, así que no se detecta hasta que alguien lee la documentación y descubre que
+miente.
+
+[`tools/verificar.mjs`](tools/verificar.mjs) le pregunta a Playwright qué casos existen **de
+verdad** —`--list`, que no levanta navegadores ni toca la red— y comprueba contra esa respuesta que
+todo caso de la suite está en la matriz y al revés, que las cifras declaradas son las reales, que
+los enlaces internos resuelven y que los anclajes apuntan a encabezados que existen.
+
+Las dos herramientas se probaron **al revés**, rompiendo cosas a propósito para confirmar que
+avisan. Y la primera incoherencia que encontró el verificador fue **suya**: daba por roto un
+anclaje correcto porque colapsaba los espacios consecutivos, y GitHub no lo hace. Una herramienta
+que señala fallos inexistentes enseña a ignorarla, que es la única forma de que deje de servir.
 
 ### 7. El criterio se ve en lo que se deja fuera
 
@@ -225,8 +238,9 @@ señala fallos inexistentes enseña a ignorarlo, que es la única forma de que d
 - **Sin ejecución programada, a propósito.** La suite corre contra un sitio de terceros: una caída
   suya dejaría la insignia en rojo sin que haya nada que corregir aquí. La insignia informa del
   estado del código, no de la disponibilidad de un servicio ajeno.
-- **Cero esperas fijas.** No hay un solo `waitForTimeout` en la suite, y es un criterio de revisión
-  de código, no una casualidad.
+- **Cero esperas fijas, y comprobado por una regla.** No hay un solo `waitForTimeout` en la suite.
+  No es un criterio de revisión que alguien pueda olvidar: `playwright/no-wait-for-timeout` corta
+  la integración continua (ver §6).
 - **Los reintentos son 2 y no se suben.** Están para absorber la variabilidad de red en CI, y
   Playwright marca como inestable el test que los usa. Subirlos a 3 para que deje de molestar
   convierte una señal en ruido: la [política](docs/04-politica-de-tests-inestables.md) lo dice
@@ -279,6 +293,7 @@ playwright-e2e-saucedemo/
 ├── tests/           Los casos, que solo describen comportamiento
 ├── docs/            Plan, matriz, hallazgos y política de inestabilidad
 ├── tools/           Verificador de consistencia entre la suite y sus documentos
+├── eslint.config.mjs   Reglas que impiden fallos, no que uniformen el estilo
 └── .github/workflows/tests.yml
 ```
 
@@ -315,7 +330,7 @@ test.use({ userName: USERS.problem });   // los hallazgos de problem_user
 
 | Job | Qué hace |
 | --- | --- |
-| **Tipos y documentación** | `tsc --noEmit` y `npm run verificar` en menos de 20 s, sin levantar un navegador. Un fallo aquí dice «es de código» o «la documentación se ha quedado atrás», no «ha fallado la suite» |
+| **Calidad** | Tipos, reglas de la suite y consistencia de la documentación en menos de un minuto, sin levantar un navegador. Va en su propio job para que el fallo diga «es de código» o «la documentación se ha quedado atrás», no «ha fallado la suite» |
 | **E2E ×3** | Matriz de Chromium, Firefox y WebKit en paralelo, con `fail-fast: false`: si Firefox falla, WebKit se ejecuta igual. Cada fallo se anota sobre el diff del pull request |
 | **Reporte unificado** | Une los tres reportes parciales en un único informe HTML, también —sobre todo— cuando algo ha fallado |
 | **Publicación** | Despliega el informe en [GitHub Pages](https://blistahub.github.io/playwright-e2e-saucedemo/). Va con `continue-on-error` a propósito: si Pages no está habilitado, la insignia debe seguir reflejando si los tests pasan, no si está configurado el alojamiento |
@@ -332,8 +347,8 @@ en cada paso: es la diferencia entre «falla en CI y en mi máquina no» y un di
 | **URL** | `https://www.saucedemo.com` |
 | **Credenciales** | Publicadas por el fabricante en su propia pantalla de acceso |
 | **Desarrollo** | Windows 11 Pro 24H2 · Node 22 |
-| **Integración continua** | `ubuntu-latest` · Node 20 |
-| **Herramientas** | Playwright · TypeScript · GitHub Actions |
+| **Integración continua** | `ubuntu-latest` · Node 20 (fijado en [`.nvmrc`](.nvmrc) y en `engines`) |
+| **Herramientas** | Playwright · TypeScript · ESLint · GitHub Actions |
 
 ### Nota ética
 

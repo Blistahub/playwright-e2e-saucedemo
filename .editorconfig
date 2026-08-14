@@ -1,0 +1,16 @@
+# Mismo formato en cualquier editor. Acompaña a .gitattributes: allí se
+# normaliza lo que se guarda en el repositorio, aquí lo que se escribe.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+# En Markdown, dos espacios al final de una línea son un salto de línea
+# deliberado: recortarlos cambiaría el documento.
+trim_trailing_whitespace = false

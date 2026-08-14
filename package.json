@@ -5,6 +5,23 @@
   "description": "Suite E2E automatizada con Playwright y TypeScript sobre SauceDemo: Page Object Model, fixtures, pruebas dirigidas por datos y ejecución cross-browser en CI.",
   "author": "David Coya Moreno",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Blistahub/playwright-e2e-saucedemo.git"
+  },
+  "homepage": "https://blistahub.github.io/playwright-e2e-saucedemo/",
+  "keywords": [
+    "qa",
+    "testing",
+    "playwright",
+    "typescript",
+    "e2e",
+    "page-object-model",
+    "test-automation"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "playwright test",
     "test:chromium": "playwright test --project=chromium",
@@ -16,11 +33,18 @@
     "test:hallazgos": "playwright test --grep @hallazgo",
     "report": "playwright show-report",
     "typecheck": "tsc --noEmit",
-    "verificar": "node tools/verificar.mjs"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "verificar": "node tools/verificar.mjs",
+    "calidad": "npm run typecheck && npm run lint && npm run verificar"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.55.0",
     "@types/node": "^22.15.0",
-    "typescript": "^5.8.0"
+    "eslint": "^10.8.1",
+    "eslint-plugin-playwright": "^2.11.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.67.0"
   }
 }

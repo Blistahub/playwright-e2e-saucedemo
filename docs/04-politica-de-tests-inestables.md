@@ -51,8 +51,10 @@ deje de molestar convierte una señal en ruido. El número está en 2 y no se su
 
 Estas decisiones están tomadas en el código y son las que mantienen la suite estable:
 
-- **Cero esperas fijas.** Toda la sincronización se apoya en las aserciones con reintento de
-  Playwright, que esperan a que la condición se cumpla en lugar de a que pase un tiempo.
+- **Cero esperas fijas, y no por confianza.** Toda la sincronización se apoya en las aserciones con
+  reintento de Playwright, que esperan a que la condición se cumpla en lugar de a que pase un
+  tiempo. La regla `playwright/no-wait-for-timeout` lo impone: añadir una espera fija no pasa la
+  integración continua. Un criterio que depende de que nadie se despiste no es un criterio.
 - **Aislamiento por contexto.** Cada test recibe un contexto de navegador nuevo. El estado de
   SauceDemo vive en una cookie, así que muere con él: no hay estado que arrastrar entre tests ni
   limpieza que se pueda olvidar.

@@ -99,6 +99,11 @@ tests/       Los casos, que solo describen comportamiento
 tools/       Verificador de consistencia entre la suite y esta documentación
 ```
 
+Cuatro de las reglas de este plan no dependen de que nadie se despiste, porque están impuestas por
+`eslint.config.mjs`: ninguna espera fija, ningún test enfocado, ningún `expect` sin `await` y
+ningún test sin aserciones. El criterio para incluir una regla es que impida un fallo real, no que
+uniforme el estilo.
+
 Tres reglas sostienen esta separación:
 
 1. **Ningún selector fuera de `pages/`.** Un cambio en el DOM se corrige en un fichero.
@@ -197,7 +202,7 @@ como tal en vez de darlo por resuelto.
 | R-01 | La aplicación es de un tercero y puede cambiar o caer sin aviso | Sin ejecución programada (§2.2). Los selectores se concentran en `pages/`, así que un rediseño se absorbe en un punto |
 | R-02 | Un test inestable erosiona la confianza en toda la suite | Política explícita en [`04-politica-de-tests-inestables.md`](04-politica-de-tests-inestables.md): investigar, no reintentar |
 | R-03 | Los defectos conocidos podrían corregirse y romper la suite | Es el comportamiento buscado: `test.fail()` convierte la corrección en una señal, no en un fallo silencioso (§6) |
-| R-04 | Esperas fijas introducidas al depurar | No hay ni un `waitForTimeout` en la suite. Toda la sincronización se apoya en las aserciones con reintento de Playwright |
+| R-04 | Esperas fijas introducidas al depurar | No hay ni un `waitForTimeout` en la suite, y la regla `playwright/no-wait-for-timeout` impide añadirlo: la integración continua no lo acepta. Toda la sincronización se apoya en las aserciones con reintento de Playwright |
 | R-05 | Los datos de prueba se dispersan por los tests | `data/` es la única fuente. Es revisable de un vistazo en la revisión de código |
 
 ---

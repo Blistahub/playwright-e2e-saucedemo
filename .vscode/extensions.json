@@ -1,0 +1,11 @@
+{
+  // Extensiones recomendadas a quien clone el repositorio. La de Playwright
+  // permite lanzar un caso suelto desde el margen del editor y abrir su traza
+  // sin pasar por la línea de comandos, que es la diferencia entre depurar un
+  // test inestable en un minuto o en veinte.
+  "recommendations": [
+    "ms-playwright.playwright",
+    "dbaeumer.vscode-eslint",
+    "editorconfig.editorconfig"
+  ]
+}

@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   calidad:
-    name: Tipos y documentación
+    name: Calidad
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -35,6 +35,13 @@ jobs:
       # código", no "ha fallado algo en la suite".
       - name: Comprobar tipos
         run: npm run typecheck
+
+      # Las reglas que sostienen lo que la documentación afirma sobre la suite:
+      # cero esperas fijas, ningún test enfocado, ningún expect sin await y
+      # ningún test sin aserciones. Una promesa sin await es el peor fallo
+      # posible en un test, porque lo hace pasar siempre.
+      - name: Comprobar reglas de la suite
+        run: npm run lint
 
       # Comprueba que la documentación siga diciendo la verdad sobre la suite:
       # casos, cifras, enlaces y anclajes. No levanta navegadores ni toca la

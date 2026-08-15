@@ -77,11 +77,15 @@ jobs:
 
       - run: npm ci
 
-      # Descargar el navegador costaba 29 s en Chromium y cerca de 50 s en
-      # WebKit, más que ejecutar la suite entera. Se cachea por versión de
-      # Playwright: la clave sale del package-lock, así que una actualización
-      # de la dependencia invalida la caché por sí sola y nunca se ejecuta
-      # contra un navegador que no corresponde.
+      # Descargar el navegador costaba 29 s en Chromium, 23 s en Firefox y
+      # 39 s en WebKit: más que ejecutar la suite. Se cachea por versión de
+      # Playwright, con la clave derivada del package-lock, así que una
+      # actualización de la dependencia invalida la caché por sí sola y nunca
+      # se ejecuta contra un navegador que no corresponde.
+      #
+      # El ahorro medido es de 7 a 15 s por job, menos de lo que parecería:
+      # los binarios dejan de descargarse, pero las bibliotecas del sistema
+      # siguen instalándose abajo. El techo lo pone apt, no la descarga.
       - name: Caché del navegador
         id: cache-navegador
         uses: actions/cache@v4

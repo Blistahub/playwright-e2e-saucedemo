@@ -354,13 +354,35 @@ test.use({ userName: USERS.problem });   // los hallazgos de problem_user
 | Job | Qué hace |
 | --- | --- |
 | **Calidad** | Tipos, reglas de la suite, las 9 pruebas unitarias y la consistencia de la documentación, en segundos y sin levantar un navegador. Va en su propio job para que el fallo diga «es de código» o «la documentación se ha quedado atrás», no «ha fallado la suite» |
-| **Caché del navegador** | Descargar el navegador costaba 29 s en Chromium y ~50 s en WebKit, más que ejecutar la suite. Se cachea por versión de Playwright, con la clave derivada del `package-lock` para que una actualización la invalide sola |
+| **Caché del navegador** | Descargar el navegador costaba más que ejecutar la suite. Se cachea por versión de Playwright, con la clave derivada del `package-lock` para que una actualización la invalide sola. El ahorro está [medido, no supuesto](#la-optimización-que-salió-a-medias) |
 | **E2E ×3** | Matriz de Chromium, Firefox y WebKit en paralelo, con `fail-fast: false`: si Firefox falla, WebKit se ejecuta igual. Cada fallo se anota sobre el diff del pull request |
 | **Reporte unificado** | Une los tres reportes parciales en un único informe HTML, también —sobre todo— cuando algo ha fallado |
 | **Publicación** | Despliega el informe en [GitHub Pages](https://blistahub.github.io/playwright-e2e-saucedemo/). Va con `continue-on-error` a propósito: si Pages no está habilitado, la insignia debe seguir reflejando si los tests pasan, no si está configurado el alojamiento |
 
 Al fallar un test se conservan **captura, vídeo y traza**. La traza abre el DOM, la red y el estado
 en cada paso: es la diferencia entre «falla en CI y en mi máquina no» y un diagnóstico.
+
+### La optimización que salió a medias
+
+Instalar el navegador era el paso más caro de cada job —más que ejecutar la suite—, así que se
+cacheó. El resultado, medido antes y después sobre ejecuciones reales:
+
+| Navegador | Instalación (antes) | Caché + dependencias (después) | Ahorro |
+| --- | :---: | :---: | :---: |
+| Chromium | 29 s | 22 s | **7 s** |
+| Firefox | 23 s | 15 s | **8 s** |
+| WebKit | 39 s | 24 s | **15 s** |
+
+Menos de lo esperado, y el motivo es interesante: **el cuello de botella se movió**. Los binarios
+del navegador ya no se descargan, pero las bibliotecas del sistema viven fuera de la caché y hay
+que instalarlas igual con `install-deps`, que pasa a costar entre 15 y 23 s. El techo de esta
+optimización lo pone `apt`, no la descarga.
+
+Se queda porque 30 s menos en la matriz son 30 s menos, y porque el siguiente paso —usar la imagen
+Docker oficial de Playwright, que trae binarios y dependencias— cambia bastante más de lo que
+mejora. Pero la cifra que se publica es la medida, no la que hacía bonito: **prometer el mejor
+número imaginable y no volver a comprobarlo es exactamente el hábito que este repositorio intenta
+no tener.**
 
 ---
 

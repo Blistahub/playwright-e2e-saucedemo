@@ -70,7 +70,49 @@ Estas decisiones están tomadas en el código y son las que mantienen la suite e
 
 ---
 
-## 4. Cómo se comprueba
+## 4. Registro de incidencias
+
+Un test inestable que no se anota es un test inestable que se repite.
+
+### INE-01 · CP-18 en Firefox — **abierta, sin diagnóstico**
+
+| | |
+| --- | --- |
+| **Detectado** | Ejecución local de la suite completa (102 pruebas, 8 procesos) |
+| **Frecuencia** | 1 de 1 esa vez · **0 de 5** en las reproducciones posteriores |
+| **Estado** | Abierta. Mitigada, **no diagnosticada** |
+
+CP-18 falló una vez en Firefox durante una ejecución completa. No se reprodujo ni aislado, ni
+ejecutando Firefox entero, ni en dos pasadas completas más.
+
+**El diagnóstico se perdió, y esa es la parte instructiva.** La traza estaba configurada como
+`on-first-retry`, y en local los reintentos son 0: la condición no se cumplía nunca, así que el
+único fallo que ha dado la suite no dejó traza. Las capturas y el vídeo tampoco sobrevivieron,
+porque las ejecuciones siguientes limpian `test-results/`.
+
+Lo que se ha hecho:
+
+- **Traza `retain-on-failure` en local**, manteniendo `on-first-retry` en CI. Un fallo local ya no
+  se pierde. Es la corrección que de verdad importa: no arregla CP-18, arregla que la próxima vez
+  haya con qué diagnosticarlo.
+- **Concurrencia local limitada a 4 procesos**, no a los 8 por defecto. Está medido: 4 procesos
+  tardan 53,4 s y 8 tardan 53,8 s, porque el cuello de botella es la latencia del sitio y no la
+  CPU. Duplicar los navegadores simultáneos no acelera nada y solo carga un servicio ajeno, lo que
+  además contradecía el compromiso declarado en el plan de no golpearlo más rápido que una persona.
+
+Lo que **no** se ha hecho, y por qué:
+
+- No se han subido los reintentos ni se ha alargado el tiempo de espera de la aserción. Sería
+  tapar un síntoma que ni siquiera se ha entendido.
+- No se ha marcado el caso como inestable ni se ha desactivado: falló una vez de seis y no hay
+  motivo para dejar de comprobar lo que comprueba.
+
+La hipótesis de trabajo es un agotamiento del tiempo de espera bajo carga, pero **es una
+hipótesis**, y así queda anotada hasta que vuelva a ocurrir con traza delante.
+
+---
+
+## 5. Cómo se comprueba
 
 Antes de dar por buena una corrección de inestabilidad, se repite el test aislado varias veces:
 

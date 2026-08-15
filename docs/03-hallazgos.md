@@ -11,6 +11,12 @@ Cada uno tiene su test en [`findings.spec.ts`](../tests/findings.spec.ts) o
 El razonamiento de por qué se marcan así está en el
 [plan](01-plan-de-automatizacion.md#6-tratamiento-de-los-defectos-conocidos).
 
+**Cada reporte lleva captura y traza.** Las capturas se generan con
+`npm run evidencias`, contra la misma aplicación y los mismos usuarios que usa la suite: una
+captura hecha a mano envejece sin que nadie se entere. Las trazas se publican en cada `push` y se
+abren en el visor oficial de Playwright, que permite recorrer el caso paso a paso con el DOM, la
+red y una captura por acción.
+
 | # | Defecto | Usuario | Severidad | Prioridad |
 | :---: | --- | --- | :---: | :---: |
 | [HAL-01](#hal-01) | Todas las tarjetas muestran la misma imagen | `problem_user` | Media | Media |
@@ -43,12 +49,16 @@ Cada producto muestra su propia imagen: seis rutas distintas.
 
 ### Resultado obtenido
 
-Las seis tarjetas cargan el mismo recurso, que además es una imagen de error:
+Las seis tarjetas cargan el mismo recurso, que además es el marcador de imagen no encontrada:
 
 ```
 /assets/sl-404-Cq1a9k9X.jpg     ← las 6 tarjetas
 imágenes distintas: 1 de 6
 ```
+
+![Catálogo de seis productos distintos en el que las seis tarjetas muestran exactamente la misma fotografía](../evidencias/HAL-01-imagenes-repetidas.png)
+
+[Recorrer la traza](https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-01.zip)
 
 ### Impacto
 
@@ -90,6 +100,10 @@ Al pulsar «Continue», la aplicación no avanza:
 URL   → /checkout-step-one.html   (no progresa al resumen)
 Error → "Error: Last Name is required"
 ```
+
+![Formulario de checkout con «Coya» en el campo del nombre, el campo del apellido vacío y el error «Error: Last Name is required»](../evidencias/HAL-02-apellido-bloquea-compra.png)
+
+[Recorrer la traza](https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-02.zip)
 
 ### Verificación
 
@@ -137,6 +151,10 @@ contador tras pulsar Remove : 2      (esperado: 1)
 botones Remove presentes    : remove-sauce-labs-backpack, remove-sauce-labs-onesie
 ```
 
+![Catálogo con el contador del carrito en 2 después de haber pulsado «Remove», y los dos botones «Remove» todavía visibles](../evidencias/HAL-03-remove-no-elimina.png)
+
+[Recorrer la traza](https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-03.zip)
+
 El botón responde al clic —no está deshabilitado— pero la acción no surte efecto. Para el usuario,
 la interfaz acepta la orden y la ignora.
 
@@ -172,6 +190,10 @@ antes   : 29.99, 9.99, 15.99, 49.99, 7.99, 15.99
 después : 29.99, 9.99, 15.99, 49.99, 7.99, 15.99   ← sin cambios
 ```
 
+![Catálogo con el desplegable mostrando «Price (high to low)» como criterio activo y los productos en el orden original](../evidencias/HAL-04-orden-no-se-aplica.png)
+
+[Recorrer la traza](https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-04.zip)
+
 El desplegable acepta la selección y la muestra como opción activa, de modo que la interfaz da por
 aplicado un criterio que no se ha aplicado.
 
@@ -205,6 +227,12 @@ El acceso se completa dentro del presupuesto establecido: **2.500 ms**.
 performance_glitch_user : 5.117 ms     (presupuesto: 2.500 ms)
 standard_user           :   ~700 ms     (referencia, misma máquina y misma sesión)
 ```
+
+![Pantalla de acceso de SauceDemo dos segundos después de haber pulsado «Login», todavía sin navegar al catálogo](../evidencias/HAL-05-acceso-lento.png)
+
+<sub>Dos segundos después de pulsar «Login», la aplicación sigue en el formulario.</sub>
+
+[Recorrer la traza](https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-05.zip)
 
 ### Sobre el umbral
 

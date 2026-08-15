@@ -122,6 +122,29 @@ jobs:
           path: blob-report/
           retention-days: 7
 
+      # Las trazas de los defectos conocidos, que son lo que se publica para
+      # que cualquiera pueda recorrerlos paso a paso en el visor oficial.
+      #
+      # Hace falta una ejecución aparte con --trace=on: en la principal la
+      # traza está en on-first-retry y un fallo *esperado* no reintenta, así
+      # que nunca se generaría. Va con --output propio para no pisar los
+      # resultados de la ejecución anterior, que es exactamente el error que
+      # se cometió al montar esto la primera vez.
+      - name: Capturar las trazas de los hallazgos
+        if: ${{ matrix.project == 'chromium' && !cancelled() }}
+        run: |
+          npx playwright test --project=chromium --grep @hallazgo \
+            --trace=on --output=trazas-salida --reporter=json > trazas.json
+          node tools/nombrar-trazas.mjs trazas.json trazas
+
+      - name: Guardar las trazas
+        if: ${{ matrix.project == 'chromium' && !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: trazas
+          path: trazas/
+          retention-days: 7
+
   reporte:
     name: Reporte unificado
     # `always()` para que el informe se genere también —sobre todo— cuando
@@ -150,11 +173,25 @@ jobs:
       - name: Unir los tres navegadores en un informe
         run: npx playwright merge-reports --reporter html ./all-blob-reports
 
-      - name: Publicar el informe como artefacto
+      - name: Recuperar las trazas de los hallazgos
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: trazas
+          path: trazas
+
+      # La raíz del sitio es una presentación en español; el informe pasa a
+      # /informe/ y las evidencias y trazas cuelgan al lado. Antes Pages servía
+      # el informe de Playwright directamente: útil como constancia, pero quien
+      # abría el enlace se encontraba un listado en inglés sin contexto.
+      - name: Ensamblar el sitio
+        run: node tools/preparar-sitio.mjs trazas
+
+      - name: Publicar el sitio como artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: sitio
+          path: _sitio/
           retention-days: 30
 
   publicar-reporte:
@@ -178,17 +215,17 @@ jobs:
       name: github-pages
       url: ${{ steps.despliegue.outputs.page_url }}
     steps:
-      - name: Recuperar el informe
+      - name: Recuperar el sitio
         uses: actions/download-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report
+          name: sitio
+          path: _sitio
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: playwright-report
+          path: _sitio
 
       - id: despliegue
         uses: actions/deploy-pages@v4

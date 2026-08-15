@@ -14,11 +14,18 @@ Page Object Model, *fixtures* y pruebas dirigidas por datos en TypeScript.
 ![Defectos](https://img.shields.io/badge/defectos_documentados-5-c0392b)
 ![Playwright](https://img.shields.io/badge/Playwright-TypeScript-45ba4b)
 
-**📊 [Informe de la última ejecución](https://blistahub.github.io/playwright-e2e-saucedemo/)** —
-los 93 resultados, navegables, sin clonar el repositorio.
+**🌐 [Ver el proyecto en web](https://blistahub.github.io/playwright-e2e-saucedemo/)** — los 93
+resultados, las evidencias y las trazas interactivas, sin clonar el repositorio.
 
 <sub>David Coya Moreno — QA Tester · [LinkedIn](https://linkedin.com/in/david-coya-moreno) ·
 davidcoyamoreno@gmail.com</sub>
+
+---
+
+![Recorrido completo de una compra: acceso, catálogo, carrito, datos del comprador, resumen de importes y confirmación del pedido](evidencias/compra-completa.gif)
+
+<sub>**CP-16**, la compra de extremo a extremo, que la suite ejecuta en los tres navegadores en
+cada `push`. Grabación con pausas para poder leerla: el caso real tarda menos de dos segundos.</sub>
 
 ---
 
@@ -78,6 +85,12 @@ reproducibles**, y el más grave no estaba a la vista:
 >
 > El formulario exige un campo que la propia aplicación impide rellenar: **la compra es
 > imposible.**
+
+![Formulario de checkout con «Coya» escrito en el campo del nombre, el campo del apellido vacío y el mensaje «Error: Last Name is required»](evidencias/HAL-02-apellido-bloquea-compra.png)
+
+<sub>Se escribió «David» en el nombre y «Coya» en el apellido. El resultado: «Coya» en el primer
+campo, el segundo vacío y la compra detenida. ·
+**[Recorrer la traza paso a paso](https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-02.zip)**</sub>
 
 Antes de reportarlo se descartaron las dos explicaciones alternativas, porque un defecto que el
 equipo de desarrollo cierra como no reproducible cuesta más que no haberlo reportado:
@@ -283,6 +296,10 @@ le presenta a la función una entrada que lo provoque.
 **Severidad y prioridad se clasifican por separado**, y en HAL-05 divergen: cinco segundos de
 espera molestan, pero no impiden nada.
 
+Cada uno tiene su **captura y su traza interactiva** en
+[`docs/03-hallazgos.md`](docs/03-hallazgos.md). La traza abre el DOM, la red y una captura por
+acción: es la diferencia entre leer que algo falla y verlo fallar.
+
 ---
 
 ## Documentación
@@ -315,7 +332,9 @@ playwright-e2e-saucedemo/
 ├── tests/           Los casos, que solo describen comportamiento
 │   └── unit/            La capa baja: lógica pura, sin navegador
 ├── docs/            Plan, matriz, hallazgos y política de inestabilidad
-├── tools/           Verificador de consistencia entre la suite y sus documentos
+├── evidencias/      Capturas de los defectos y el GIF, generados por script
+├── sitio/           La página que se publica en la raíz de GitHub Pages
+├── tools/           Verificador, generador de evidencias y ensamblado del sitio
 ├── eslint.config.mjs   Reglas que impiden fallos, no que uniformen el estilo
 └── .github/workflows/tests.yml
 ```

@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Suite E2E con Playwright — David Coya Moreno</title>
+    <meta
+      name="description"
+      content="Suite de regresión E2E con Playwright y TypeScript sobre SauceDemo: 31 casos en tres navegadores, 5 defectos reales documentados y trazas interactivas."
+    />
+    <meta property="og:title" content="Suite E2E con Playwright — David Coya Moreno" />
+    <meta
+      property="og:description"
+      content="31 casos E2E · 93 ejecuciones por push · 5 defectos reales encontrados y documentados."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>"
+    />
+    <style>
+      :root {
+        --fondo: #ffffff;
+        --fondo-alt: #f6f8fa;
+        --texto: #1f2328;
+        --texto-suave: #59636e;
+        --borde: #d1d9e0;
+        --acento: #1f3a5f;
+        --verde: #1a7f37;
+        --rojo: #c0392b;
+        --ambar: #9a6700;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-tema='claro']) {
+          --fondo: #0d1117;
+          --fondo-alt: #151b23;
+          --texto: #e6edf3;
+          --texto-suave: #9198a1;
+          --borde: #3d444d;
+          --acento: #6ea8fe;
+          --verde: #3fb950;
+          --rojo: #ff7b72;
+          --ambar: #d29922;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--fondo);
+        color: var(--texto);
+        font: 16px/1.65 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+          sans-serif;
+      }
+      .envoltorio {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 0 20px 80px;
+      }
+      header {
+        padding: 56px 0 32px;
+        border-bottom: 1px solid var(--borde);
+        margin-bottom: 40px;
+      }
+      h1 {
+        font-size: clamp(1.7rem, 4.5vw, 2.5rem);
+        line-height: 1.2;
+        margin: 0 0 12px;
+        letter-spacing: -0.02em;
+      }
+      .subtitulo {
+        font-size: 1.12rem;
+        color: var(--texto-suave);
+        margin: 0 0 22px;
+        max-width: 62ch;
+      }
+      .autor {
+        font-size: 0.94rem;
+        color: var(--texto-suave);
+      }
+      .autor a,
+      a {
+        color: var(--acento);
+      }
+      h2 {
+        font-size: 1.32rem;
+        margin: 44px 0 14px;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.02rem;
+        margin: 26px 0 8px;
+      }
+      p {
+        margin: 0 0 14px;
+        max-width: 72ch;
+      }
+      .cifras {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin: 28px 0 8px;
+      }
+      .cifra {
+        background: var(--fondo-alt);
+        border: 1px solid var(--borde);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .cifra b {
+        display: block;
+        font-size: 1.75rem;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+      }
+      .cifra span {
+        font-size: 0.85rem;
+        color: var(--texto-suave);
+      }
+      .acciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 26px 0 6px;
+      }
+      .boton {
+        display: inline-block;
+        padding: 11px 18px;
+        border-radius: 8px;
+        border: 1px solid var(--borde);
+        text-decoration: none;
+        color: var(--texto);
+        font-weight: 600;
+        font-size: 0.95rem;
+        background: var(--fondo-alt);
+      }
+      .boton.principal {
+        background: var(--acento);
+        border-color: var(--acento);
+        color: #fff;
+      }
+      .boton:hover {
+        filter: brightness(1.08);
+      }
+      figure {
+        margin: 20px 0;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        border: 1px solid var(--borde);
+        border-radius: 10px;
+      }
+      figcaption {
+        font-size: 0.88rem;
+        color: var(--texto-suave);
+        margin-top: 8px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 0.94rem;
+        display: block;
+        overflow-x: auto;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--borde);
+        vertical-align: top;
+      }
+      th {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--texto-suave);
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+        font-size: 0.9em;
+        background: var(--fondo-alt);
+        border: 1px solid var(--borde);
+        border-radius: 5px;
+        padding: 1px 5px;
+      }
+      .alta {
+        color: var(--rojo);
+        font-weight: 700;
+      }
+      .media {
+        color: var(--ambar);
+        font-weight: 600;
+      }
+      .nota {
+        border-left: 3px solid var(--borde);
+        padding: 2px 0 2px 16px;
+        color: var(--texto-suave);
+        margin: 18px 0;
+      }
+      footer {
+        margin-top: 56px;
+        padding-top: 22px;
+        border-top: 1px solid var(--borde);
+        font-size: 0.88rem;
+        color: var(--texto-suave);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="envoltorio">
+      <header>
+        <h1>Suite de regresión E2E sobre una tienda en línea</h1>
+        <p class="subtitulo">
+          Del Page Object Model a la integración continua en los tres motores de navegador que
+          existen. Con 5 defectos reales encontrados por el camino, uno de ellos capaz de bloquear
+          una compra entera.
+        </p>
+        <p class="autor">
+          <strong>David Coya Moreno</strong> — QA Tester · Madrid ·
+          <a href="https://linkedin.com/in/david-coya-moreno">LinkedIn</a> ·
+          <a href="https://github.com/Blistahub/playwright-e2e-saucedemo">GitHub</a>
+        </p>
+      </header>
+
+      <div class="cifras">
+        <div class="cifra"><b>31</b><span>casos E2E</span></div>
+        <div class="cifra"><b>93</b><span>ejecuciones por push</span></div>
+        <div class="cifra"><b>9</b><span>pruebas unitarias</span></div>
+        <div class="cifra"><b>5</b><span>defectos documentados</span></div>
+        <div class="cifra"><b>0</b><span>tests inestables</span></div>
+      </div>
+
+      <div class="acciones">
+        <a class="boton principal" href="informe/">Ver el informe de la última ejecución</a>
+        <a class="boton" href="https://github.com/Blistahub/playwright-e2e-saucedemo"
+          >Código y documentación</a
+        >
+      </div>
+
+      <h2>La compra completa, de extremo a extremo</h2>
+      <p>
+        Es el caso <code>CP-16</code>, el que recorre el flujo que genera ingreso: catálogo,
+        carrito, datos del comprador, resumen de importes y confirmación. La suite lo ejecuta en
+        Chromium, Firefox y WebKit en cada <code>push</code>.
+      </p>
+      <figure>
+        <img
+          src="evidencias/compra-completa.gif"
+          alt="Recorrido completo de una compra en SauceDemo: acceso, catálogo, carrito, datos del comprador, resumen y confirmación del pedido"
+          width="1000"
+          height="660"
+        />
+        <figcaption>
+          Grabación de demostración con pausas para poder leerla. El caso real tarda menos de dos
+          segundos.
+        </figcaption>
+      </figure>
+
+      <h2>Los 5 defectos encontrados</h2>
+      <p>
+        SauceDemo incluye usuarios rotos a propósito. Eso no cambia el trabajo: hay que dar con el
+        fallo, acotarlo, comprobar que no es una impresión y describirlo de forma que alguien pueda
+        corregirlo sin volver a investigarlo.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Defecto</th>
+            <th>Usuario</th>
+            <th>Severidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>HAL-01</td>
+            <td>Todas las tarjetas muestran la misma imagen</td>
+            <td><code>problem_user</code></td>
+            <td class="media">Media</td>
+          </tr>
+          <tr>
+            <td>HAL-02</td>
+            <td>«Last Name» impide completar la compra</td>
+            <td><code>problem_user</code></td>
+            <td class="alta">Alta</td>
+          </tr>
+          <tr>
+            <td>HAL-03</td>
+            <td>«Remove» no retira el producto del carrito</td>
+            <td><code>error_user</code></td>
+            <td class="alta">Alta</td>
+          </tr>
+          <tr>
+            <td>HAL-04</td>
+            <td>La ordenación no reordena el catálogo</td>
+            <td><code>error_user</code></td>
+            <td class="media">Media</td>
+          </tr>
+          <tr>
+            <td>HAL-05</td>
+            <td>El acceso tarda unos 5 s</td>
+            <td><code>performance_glitch_user</code></td>
+            <td class="media">Media</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>El más grave: un campo obligatorio que no se puede rellenar</h3>
+      <p>
+        En <code>HAL-02</code>, lo que se teclea en «Last Name» se escribe en «First Name» y el
+        apellido queda vacío. Como el formulario exige ese campo para continuar,
+        <strong>la compra es imposible</strong>.
+      </p>
+      <figure>
+        <img
+          src="evidencias/HAL-02-apellido-bloquea-compra.png"
+          alt="Formulario de checkout con «Coya» escrito en el campo del nombre, el campo del apellido vacío y el mensaje de error «Error: Last Name is required»"
+        />
+        <figcaption>
+          Se escribió «David» en el nombre y «Coya» en el apellido. El resultado: «Coya» en el
+          primer campo, el segundo vacío y la compra detenida.
+        </figcaption>
+      </figure>
+      <p class="nota">
+        Antes de reportarlo se descartaron las dos explicaciones alternativas: rellenar primero el
+        apellido y después el nombre, y teclear pulsación a pulsación con 60&nbsp;ms de retardo. En
+        ninguno de los dos casos se puede rellenar el apellido. Un defecto que el equipo de
+        desarrollo cierra como «no reproducible» cuesta más que no haberlo reportado.
+      </p>
+
+      <h3>Y uno que la interfaz da por hecho</h3>
+      <figure>
+        <img
+          src="evidencias/HAL-01-imagenes-repetidas.png"
+          alt="Catálogo de seis productos distintos en el que las seis tarjetas muestran exactamente la misma fotografía"
+        />
+        <figcaption>
+          <code>HAL-01</code> — seis productos distintos, una sola imagen. En una tienda, la imagen
+          es el principal criterio de selección.
+        </figcaption>
+      </figure>
+
+      <h2>Trazas interactivas</h2>
+      <p>
+        Cada defecto tiene su traza de Playwright publicada. Se abren en el visor oficial y
+        permiten recorrer el caso paso a paso: el DOM en cada momento, las peticiones de red, la
+        consola y una captura por acción. Es la diferencia entre leer que algo falla y verlo
+        fallar.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Defecto</th>
+            <th>Traza</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>HAL-01 · imágenes repetidas</td>
+            <td>
+              <a
+                href="https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-01.zip"
+                >Abrir en el visor</a
+              >
+            </td>
+          </tr>
+          <tr>
+            <td>HAL-02 · el apellido bloquea la compra</td>
+            <td>
+              <a
+                href="https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-02.zip"
+                >Abrir en el visor</a
+              >
+            </td>
+          </tr>
+          <tr>
+            <td>HAL-03 · «Remove» no elimina</td>
+            <td>
+              <a
+                href="https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-03.zip"
+                >Abrir en el visor</a
+              >
+            </td>
+          </tr>
+          <tr>
+            <td>HAL-04 · la ordenación no se aplica</td>
+            <td>
+              <a
+                href="https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-04.zip"
+                >Abrir en el visor</a
+              >
+            </td>
+          </tr>
+          <tr>
+            <td>HAL-05 · el acceso tarda ~5 s</td>
+            <td>
+              <a
+                href="https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-05.zip"
+                >Abrir en el visor</a
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Cómo está hecho</h2>
+      <table>
+        <tbody>
+          <tr>
+            <th>Stack</th>
+            <td>Playwright · TypeScript · GitHub Actions</td>
+          </tr>
+          <tr>
+            <th>Arquitectura</th>
+            <td>
+              Page Object Model, <em>fixtures</em> de sesión y juegos de datos externalizados.
+              Ningún selector fuera de <code>pages/</code>, ninguna aserción dentro
+            </td>
+          </tr>
+          <tr>
+            <th>Navegadores</th>
+            <td>Chromium, Firefox y WebKit: los tres motores de renderizado que existen</td>
+          </tr>
+          <tr>
+            <th>Estabilidad</th>
+            <td>
+              Cero esperas fijas, y no por confianza: lo impone una regla que corta la integración
+              continua
+            </td>
+          </tr>
+          <tr>
+            <th>Documentación</th>
+            <td>
+              Plan de automatización, matriz de casos, reportes de defecto y política de tests
+              inestables. Un verificador comprueba en cada <code>push</code> que sigan siendo
+              ciertos
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="acciones">
+        <a class="boton principal" href="informe/">Informe de la última ejecución</a>
+        <a
+          class="boton"
+          href="https://github.com/Blistahub/playwright-e2e-saucedemo/blob/main/docs/03-hallazgos.md"
+          >Los 5 reportes de defecto</a
+        >
+        <a class="boton" href="https://github.com/Blistahub/qa-portfolio-orangehrm"
+          >El proyecto de pruebas manuales</a
+        >
+      </div>
+
+      <footer>
+        <p>
+          Las pruebas se ejecutan contra la instancia que Sauce Labs publica expresamente para
+          practicar automatización, a un ritmo equivalente al de un usuario real. No se ejecutan
+          pruebas de carga, escáneres ni pruebas de seguridad ofensiva.
+        </p>
+        <p>
+          SauceDemo y Sauce Labs son marcas de Sauce Labs Inc.; este proyecto no está afiliado al
+          fabricante y su único fin es formativo y de portfolio.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

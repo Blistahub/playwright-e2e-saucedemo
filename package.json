@@ -36,7 +36,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "verificar": "node tools/verificar.mjs",
-    "calidad": "npm run typecheck && npm run lint && npm run verificar"
+    "calidad": "npm run typecheck && npm run lint && npm run verificar",
+    "evidencias": "node tools/capturar-evidencias.mjs",
+    "sitio": "node tools/preparar-sitio.mjs trazas"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -44,6 +46,8 @@
     "@types/node": "^22.15.0",
     "eslint": "^10.8.1",
     "eslint-plugin-playwright": "^2.11.0",
+    "gifenc": "^1.0.3",
+    "pngjs": "^7.0.0",
     "typescript": "^5.8.0",
     "typescript-eslint": "^8.67.0"
   }

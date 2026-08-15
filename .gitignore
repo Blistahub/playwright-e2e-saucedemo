@@ -6,6 +6,14 @@ test-results/
 blob-report/
 playwright/.cache/
 
+# El sitio de GitHub Pages y sus piezas se ensamblan en cada despliegue.
+# Las evidencias de `evidencias/` sí se versionan: son la ilustración de los
+# reportes de defecto y se regeneran a mano con `npm run evidencias`.
+_sitio/
+trazas/
+trazas-salida/
+trazas.json
+
 # Entorno local
 .env
 .env.local

@@ -2,7 +2,7 @@ import { loggedInTest as test, expect } from '../fixtures/test';
 import { SORT_OPTIONS, type SortOption } from '../pages/InventoryPage';
 import { PRODUCTS } from '../data/products';
 
-/** Orden alfabético esperado del catálogo, que es fijo y conocido. */
+/** Orden alfabético del catálogo, que es fijo y conocido. */
 const NAMES_A_TO_Z = [
   PRODUCTS.backpack,
   PRODUCTS.bikeLight,
@@ -56,7 +56,7 @@ const PRICE_SCENARIOS: PriceScenario[] = [
   },
 ];
 
-/** Comprueba que una serie no rompe la monotonía en el sentido indicado. */
+/** ¿La serie mantiene la monotonía en el sentido indicado? */
 function isOrdered(values: number[], direction: 'asc' | 'desc'): boolean {
   return values.every(
     (value, index) =>
@@ -66,10 +66,7 @@ function isOrdered(values: number[], direction: 'asc' | 'desc'): boolean {
 }
 
 test.describe('Ordenación del catálogo', () => {
-  /**
-   * Los nombres son únicos, así que se puede exigir el orden exacto: es el
-   * oráculo más fuerte disponible.
-   */
+  // Los nombres son únicos, así que se puede exigir el orden exacto.
   for (const scenario of NAME_SCENARIOS) {
     test(`${scenario.id} · ordenar por nombre ${scenario.description}`, async ({
       inventoryPage,
@@ -81,11 +78,10 @@ test.describe('Ordenación del catálogo', () => {
   }
 
   /**
-   * Con los precios no se puede exigir un orden exacto: dos artículos cuestan
-   * 15,99 $ y la aplicación no promete cómo desempata. Exigir una secuencia
-   * concreta convertiría un empate legítimo en un fallo, así que se comprueba
-   * lo que sí es un requisito —que la serie no rompe la monotonía— y aparte
-   * que no se ha perdido ni duplicado ningún artículo por el camino.
+   * Con los precios no se puede: dos artículos cuestan 15,99 $ y la app no
+   * promete cómo desempata. Exigir una secuencia concreta convertiría un
+   * empate legítimo en un fallo, así que se comprueba la monotonía y, aparte,
+   * que no se ha perdido ni duplicado nada.
    */
   for (const scenario of PRICE_SCENARIOS) {
     test(`${scenario.id} · ordenar por precio ${scenario.description}`, async ({
@@ -99,9 +95,8 @@ test.describe('Ordenación del catálogo', () => {
         `Los precios no están ordenados ${scenario.description}: ${prices.join(', ')}`,
       ).toBe(true);
 
-      /* Ordenar no puede perder ni duplicar artículos: se comparan los dos
-         conjuntos, ordenados alfabéticamente para que la comparación no
-         dependa del criterio que acaba de aplicarse. */
+      // Ordenados alfabéticamente para que la comparación no dependa del
+      // criterio que se acaba de aplicar.
       const names = await inventoryPage.visibleNames();
       expect(names.sort()).toEqual([...NAMES_A_TO_Z].sort());
     });

@@ -1,18 +1,17 @@
 #!/usr/bin/env node
 /**
- * Recoge las trazas de una ejecución y las nombra por su identificador.
+ * Recoge las trazas de una ejecución y las renombra por identificador.
  *
- * Playwright las deja en carpetas con el título del test recortado y un hash
- * —`findings-Defectos-de-probl-4be1d--lo-que-se-escribe-hallazgo-chromium`—,
- * que no sirve para enlazar desde la documentación ni desde el visor. El
- * informe JSON sí trae el título completo junto a la ruta del adjunto, así
- * que el identificador sale de ahí y el fichero acaba llamándose `HAL-02.zip`.
+ * Playwright las deja en carpetas con el título recortado y un hash
+ * (`findings-Defectos-de-probl-4be1d-...`), que no sirve para enlazar. El
+ * informe JSON sí trae el título completo junto a la ruta, así que el ID sale
+ * de ahí y el fichero acaba siendo `HAL-02.zip`.
  *
  *   node tools/nombrar-trazas.mjs <informe.json> <carpeta-destino>
  *
- * Va en su propio paso, y no dentro del ensamblado del sitio, porque en
- * integración continua las trazas se generan en el job del navegador y el
- * sitio se monta en otro: las rutas del JSON solo existen donde se ejecutó.
+ * Va en su propio paso porque en CI las trazas se generan en el job del
+ * navegador y el sitio se monta en otro: las rutas del JSON solo existen donde
+ * se ejecutó.
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';

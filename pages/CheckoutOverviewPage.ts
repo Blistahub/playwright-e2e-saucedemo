@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { parsePrice } from '../support/money';
 
-/** Segundo paso del checkout: resumen e importes (`/checkout-step-two.html`). */
+/** Checkout, paso 2: resumen e importes (`/checkout-step-two.html`). */
 export class CheckoutOverviewPage extends BasePage {
   readonly items: Locator;
   readonly itemNames: Locator;
@@ -33,17 +33,16 @@ export class CheckoutOverviewPage extends BasePage {
     return this.itemNames.allInnerTexts();
   }
 
-  /** Importe de «Item total», sin impuestos. */
+  /** «Item total», sin impuestos. */
   async subtotal(): Promise<number> {
     return parsePrice(await this.subtotalLabel.innerText());
   }
 
-  /** Importe de «Tax». */
   async tax(): Promise<number> {
     return parsePrice(await this.taxLabel.innerText());
   }
 
-  /** Importe de «Total», impuestos incluidos. */
+  /** «Total», con impuestos. */
   async total(): Promise<number> {
     return parsePrice(await this.totalLabel.innerText());
   }

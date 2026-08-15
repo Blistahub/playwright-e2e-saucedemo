@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import type { Customer } from '../data/customer';
 
-/** Primer paso del checkout: datos del comprador (`/checkout-step-one.html`). */
+/** Checkout, paso 1: datos del comprador (`/checkout-step-one.html`). */
 export class CheckoutPage extends BasePage {
   readonly firstNameInput: Locator;
   readonly lastNameInput: Locator;
@@ -26,11 +26,10 @@ export class CheckoutPage extends BasePage {
   }
 
   /**
-   * Rellena los tres campos sin enviar el formulario.
+   * Rellena los tres campos sin enviar.
    *
-   * Usa `fill('')` también para los campos vacíos —en lugar de saltárselos—
-   * porque los casos de datos incompletos necesitan que el campo quede
-   * explícitamente vacío, no simplemente sin tocar.
+   * Hace `fill('')` en los vacíos en vez de saltárselos: los casos de datos
+   * incompletos necesitan el campo vacío a propósito, no sin tocar.
    */
   async fillCustomer(customer: Customer): Promise<void> {
     await this.firstNameInput.fill(customer.firstName);
@@ -46,7 +45,7 @@ export class CheckoutPage extends BasePage {
     await this.cancelButton.click();
   }
 
-  /** Rellena los datos y avanza al resumen. Atajo para los tests que no prueban este paso. */
+  /** Atajo para los tests que no prueban este paso. */
   async submitCustomer(customer: Customer): Promise<void> {
     await this.fillCustomer(customer);
     await this.continue();

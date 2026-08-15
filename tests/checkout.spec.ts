@@ -24,15 +24,13 @@ test.describe('Proceso de compra', () => {
     await checkoutPage.submitCustomer(VALID_CUSTOMER);
 
     await expect(overviewPage.title).toHaveText('Checkout: Overview');
-    /* Los artículos deben llegar íntegros hasta el resumen: es el punto donde
-       un carrito mal propagado se convierte en un pedido incorrecto. */
+    // Los artículos tienen que llegar enteros al resumen: es donde un carrito
+    // mal propagado se convierte en un pedido equivocado.
     await expect(overviewPage.items).toHaveCount(2);
     expect(await overviewPage.visibleNames()).toEqual(
       expect.arrayContaining([PRODUCTS.backpack, PRODUCTS.onesie]),
     );
-    /* El resumen es lo último que ve el cliente antes de confirmar, así que
-       las condiciones de pago y envío tienen que estar presentes: un pedido
-       que se confirma sin ellas es un pedido que se confirma a ciegas. */
+    // Pago y envío son lo último que ve el cliente antes de confirmar.
     await expect(overviewPage.paymentInfo).not.toBeEmpty();
     await expect(overviewPage.shippingInfo).not.toBeEmpty();
 
@@ -41,24 +39,22 @@ test.describe('Proceso de compra', () => {
     await expect(page).toHaveURL(/\/checkout-complete\.html$/);
     await expect(completePage.header).toHaveText('Thank you for your order!');
     await expect(completePage.text).not.toBeEmpty();
-    /* Cerrado el pedido, el carrito queda vacío: si el contador sobreviviera,
-       el siguiente pedido arrastraría los artículos del anterior. */
+    // Si el contador sobreviviera, el siguiente pedido arrastraría estos artículos.
     await expect(completePage.cartBadge).toHaveCount(0);
 
-    /* Y el ciclo se cierra volviendo al catálogo, que es donde empezaría la
-       siguiente compra. Sin esta comprobación, el caso deja al usuario en una
-       pantalla sin salida verificada. */
+    // Se cierra el ciclo volviendo al catálogo, que es donde empezaría la
+    // siguiente compra.
     await completePage.backToProducts();
     await expect(inventoryPage.title).toHaveText('Products');
     await expect(inventoryPage.cartBadge).toHaveCount(0);
   });
 
   /**
-   * Test dirigido por datos sobre el cálculo de importes.
+   * Cálculo de importes con tres cestas.
    *
-   * El oráculo se calcula en el test a partir de las líneas del carrito y no
-   * se lee de la propia pantalla: un test que comparase el total del resumen
-   * con el subtotal del resumen pasaría aunque ambos fuesen erróneos.
+   * El oráculo se calcula en el test a partir de las líneas del carrito: si
+   * comparase el total del resumen con el subtotal del resumen, pasaría aunque
+   * los dos estuvieran mal.
    */
   for (const scenario of TAX_SCENARIOS) {
     test(`${scenario.id} · el resumen calcula los importes de ${scenario.description}`, async ({
@@ -87,10 +83,7 @@ test.describe('Proceso de compra', () => {
     });
   }
 
-  /**
-   * Test dirigido por datos: un caso por campo obligatorio del formulario.
-   * Los juegos de datos y los mensajes esperados viven en `data/customer.ts`.
-   */
+  // Un caso por campo obligatorio. Los datos, en `data/customer.ts`.
   for (const scenario of INCOMPLETE_CUSTOMERS) {
     test(`${scenario.id} · el checkout rechaza los datos ${scenario.description}`, async ({
       page,
@@ -106,7 +99,7 @@ test.describe('Proceso de compra', () => {
       await checkoutPage.continue();
 
       await expect(checkoutPage.errorMessage).toHaveText(scenario.expectedError);
-      /* Y, sobre todo, que no ha avanzado al resumen. */
+      // Y sobre todo: que no ha avanzado al resumen.
       await expect(page).toHaveURL(/\/checkout-step-one\.html$/);
     });
   }
@@ -123,8 +116,8 @@ test.describe('Proceso de compra', () => {
     await checkoutPage.cancel();
 
     await expect(cartPage.title).toHaveText('Your Cart');
-    /* Cancelar el checkout no es vaciar el carrito: el usuario que se arrepiente
-       de los datos de envío no ha renunciado a la compra. */
+    // Cancelar el checkout no es vaciar el carrito: quien se arrepiente de los
+    // datos de envío no ha renunciado a comprar.
     await expect(cartPage.items).toHaveCount(1);
     expect(await cartPage.visibleNames()).toEqual([PRODUCTS.bikeLight]);
   });
@@ -143,9 +136,8 @@ test.describe('Proceso de compra', () => {
 
     await overviewPage.cancel();
 
-    /* Cancelar en el resumen no lleva al carrito, como en CP-21, sino al
-       catálogo: son dos destinos distintos para el mismo verbo, y por eso son
-       dos casos y no uno parametrizado. */
+    // Aquí «Cancel» lleva al catálogo, no al carrito como en CP-21. Mismo
+    // verbo, destino distinto: por eso son dos casos y no uno parametrizado.
     await expect(inventoryPage.title).toHaveText('Products');
     await expect(inventoryPage.cartBadge).toHaveText('1');
   });

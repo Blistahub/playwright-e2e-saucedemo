@@ -4,9 +4,9 @@ import { PRODUCTS } from '../data/products';
 /**
  * Ficha de producto.
  *
- * Era un hueco de cobertura declarado en la matriz. Se cubre porque está en el
- * camino de compra —abrir la ficha y añadir desde ahí es una de las dos formas
- * de llenar el carrito—, que es el criterio de selección del plan.
+ * Era un hueco declarado en la matriz. Se cubre porque abrir la ficha y añadir
+ * desde ahí es una de las dos vías para llenar el carrito, o sea, camino de
+ * compra.
  */
 test.describe('Ficha de producto', () => {
   test('CP-23 · la ficha muestra el producto y permite añadirlo al carrito', async ({
@@ -14,9 +14,8 @@ test.describe('Ficha de producto', () => {
     inventoryPage,
     productDetailPage,
   }) => {
-    /* El precio del catálogo se lee antes de navegar, para poder comprobar que
-       la ficha muestra el mismo importe. Comparar la ficha consigo misma no
-       demostraría nada. */
+    // El precio se lee en el catálogo ANTES de navegar: comparar la ficha
+    // consigo misma no demostraría nada.
     const catalogPrice = (await inventoryPage.visiblePrices())[0];
     const catalogName = (await inventoryPage.visibleNames())[0];
 
@@ -44,9 +43,8 @@ test.describe('Ficha de producto', () => {
 
     await expect(inventoryPage.title).toHaveText('Products');
     await expect(inventoryPage.cartBadge).toHaveText('1');
-    /* El estado del botón tiene que viajar de vuelta: si la tarjeta del
-       catálogo volviera a «Add to cart», el usuario duplicaría la línea sin
-       darse cuenta. */
+    // El estado del botón tiene que volver también, o el usuario duplicaría la
+    // línea sin enterarse.
     await expect(inventoryPage.actionButton(PRODUCTS.fleeceJacket)).toHaveText('Remove');
   });
 });

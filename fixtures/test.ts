@@ -1,14 +1,13 @@
 import { test as base, expect } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
 import { InventoryPage } from '../pages/InventoryPage';
+import { ProductDetailPage } from '../pages/ProductDetailPage';
 import { CartPage } from '../pages/CartPage';
 import { CheckoutPage } from '../pages/CheckoutPage';
 import { CheckoutOverviewPage } from '../pages/CheckoutOverviewPage';
 import { CheckoutCompletePage } from '../pages/CheckoutCompletePage';
-import { ProductDetailPage } from '../pages/ProductDetailPage';
 import { PASSWORD, USERS, type UserName } from '../data/users';
 
-/** Page Objects que se inyectan en los tests ya construidos sobre la página. */
 interface PageObjects {
   loginPage: LoginPage;
   inventoryPage: InventoryPage;
@@ -20,10 +19,10 @@ interface PageObjects {
 }
 
 /**
- * `test` — sin sesión iniciada.
+ * `test` — sin sesión.
  *
- * Inyecta los Page Objects y nada más. Lo usan las pruebas que prueban el
- * propio acceso: si la sesión ya estuviera abierta no habría nada que probar.
+ * Solo inyecta los Page Objects. Lo usan las pruebas del propio acceso: si la
+ * sesión ya estuviera abierta no habría nada que probar.
  */
 export const test = base.extend<PageObjects>({
   loginPage: async ({ page }, use) => {
@@ -51,30 +50,24 @@ export const test = base.extend<PageObjects>({
 
 interface SessionOptions {
   /**
-   * Usuario con el que se abre la sesión. Se declara como opción de Playwright,
-   * así que un bloque de tests puede cambiarlo con
-   * `loggedInTest.use({ userName: USERS.problem })` sin tocar los tests.
+   * Usuario con el que se abre la sesión. Es una opción de Playwright, así que
+   * un bloque puede cambiarla con `loggedInTest.use({ userName })`.
    *
-   * El tipo es `UserName` y no `string` a propósito: un usuario mal escrito
-   * dejaría de ser un error de compilación y pasaría a ser un test que falla
-   * en el acceso por un motivo que no tiene nada que ver con lo que prueba.
+   * Tipado a `UserName` y no a `string`: un usuario mal escrito así es error de
+   * compilación, no un test que falla en el login por algo que no prueba.
    */
   userName: UserName;
 }
 
 /**
- * `loggedInTest` — con la sesión ya iniciada.
+ * `loggedInTest` — con sesión ya abierta.
  *
- * La fixture `session` es automática: se ejecuta antes de cada test sin que
- * este tenga que pedirla. Así el acceso deja de aparecer en los veintitrés
- * casos que no lo están probando, y el título de cada test describe solo lo
- * que comprueba.
+ * La fixture `session` es automática, así que el login desaparece de los 23
+ * casos que no lo están probando y cada título describe solo lo suyo.
  *
- * El acceso se hace por la interfaz y no inyectando la cookie de sesión, que
- * también funcionaría y sería más rápido. El motivo está razonado en
- * `docs/01-plan-de-automatizacion.md`, § 3.3: a esta escala el ahorro es de
- * segundos, y a cambio la suite dejaría de recorrer cada día el camino por el
- * que entran todos los usuarios reales.
+ * Se entra por la interfaz y no inyectando la cookie de sesión, que también
+ * funciona y es más rápido. El porqué, en docs/01-plan-de-automatizacion.md
+ * § 3.3.
  */
 export const loggedInTest = test.extend<SessionOptions & { session: void }>({
   userName: [USERS.standard, { option: true }],
@@ -87,10 +80,8 @@ export const loggedInTest = test.extend<SessionOptions & { session: void }>({
 
       await use();
 
-      /* No hace falta limpiar el carrito ni cerrar la sesión: cada test recibe
-         un contexto de navegador nuevo, y el estado de SauceDemo vive en una
-         cookie que muere con él. Un `reset app state` aquí daría una falsa
-         sensación de aislamiento sobre algo que ya está aislado. */
+      // Sin limpieza: cada test recibe un contexto nuevo y el estado de
+      // SauceDemo vive en una cookie que muere con él.
     },
     { auto: true },
   ],

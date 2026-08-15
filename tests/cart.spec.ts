@@ -1,7 +1,7 @@
 import { loggedInTest as test, expect } from '../fixtures/test';
 import { PRODUCTS } from '../data/products';
 
-/** Carrito: añadir, eliminar y persistencia al navegar. */
+/** Carrito: añadir, eliminar y que aguante la navegación. */
 test.describe('Carrito de la compra', () => {
   test('CP-08 · añadir un producto actualiza el contador y el botón de la tarjeta @humo', async ({
     inventoryPage,
@@ -11,8 +11,7 @@ test.describe('Carrito de la compra', () => {
     await inventoryPage.addToCart(PRODUCTS.backpack);
 
     await expect(inventoryPage.cartBadge).toHaveText('1');
-    /* El botón cambia a «Remove»: es la señal que ve el usuario de que la
-       acción ha surtido efecto sin salir del catálogo. */
+    // El botón pasa a «Remove»: es la señal que ve el usuario sin salir del catálogo.
     await expect(inventoryPage.actionButton(PRODUCTS.backpack)).toHaveText('Remove');
   });
 
@@ -26,12 +25,12 @@ test.describe('Carrito de la compra', () => {
 
     await expect(cartPage.title).toHaveText('Your Cart');
     await expect(cartPage.items).toHaveCount(2);
-    /* Se comprueba el conjunto, no el orden: la aplicación no promete ninguno
-       y fijarlo convertiría un cambio inocuo en un fallo. */
+    // El conjunto, no el orden: la app no promete ninguno y fijarlo convertiría
+    // un cambio inocuo en un fallo.
     expect(await cartPage.visibleNames()).toEqual(
       expect.arrayContaining([PRODUCTS.backpack, PRODUCTS.onesie]),
     );
-    /* Una unidad por producto: SauceDemo no permite repetir el mismo artículo. */
+    // Una unidad por producto: SauceDemo no deja repetir artículo.
     await expect(cartPage.itemQuantities).toHaveText(['1', '1']);
   });
 
@@ -46,7 +45,7 @@ test.describe('Carrito de la compra', () => {
     await cartPage.removeItem(PRODUCTS.bikeLight);
 
     await expect(cartPage.items).toHaveCount(0);
-    /* El contador desaparece del DOM; no se queda a cero. */
+    // El contador desaparece del DOM; no se queda a cero.
     await expect(cartPage.cartBadge).toHaveCount(0);
     expect(await cartPage.cartCount()).toBe(0);
   });
@@ -61,8 +60,8 @@ test.describe('Carrito de la compra', () => {
 
     await expect(inventoryPage.title).toHaveText('Products');
     await expect(inventoryPage.cartBadge).toHaveText('1');
-    /* El estado del botón también debe sobrevivir a la navegación: si volviera
-       a «Add to cart» el usuario duplicaría la línea sin darse cuenta. */
+    // El estado del botón también tiene que sobrevivir: si volviera a «Add to
+    // cart», el usuario duplicaría la línea sin enterarse.
     await expect(inventoryPage.actionButton(PRODUCTS.fleeceJacket)).toHaveText('Remove');
   });
 });

@@ -2,13 +2,9 @@
 /**
  * Ensambla lo que se publica en GitHub Pages.
  *
- * Antes, Pages servía directamente el informe HTML de Playwright: un listado
- * de resultados titulado «Playwright Test Report», en inglés y sin decir de
- * quién es ni qué prueba. Servía como constancia de que la suite existe, pero
- * quien abría el enlace no encontraba a nadie al otro lado.
- *
- * Ahora la raíz es una página que presenta el proyecto y el informe pasa a
- * `/informe/`, con las evidencias y las trazas colgando al lado:
+ * Antes Pages servía el informe de Playwright tal cual: un listado titulado
+ * «Playwright Test Report», en inglés y sin decir de quién era. Ahora la raíz
+ * presenta el proyecto y el informe pasa a `/informe/`:
  *
  *   _sitio/
  *   ├── index.html        presentación en español
@@ -18,9 +14,8 @@
  *
  *   node tools/preparar-sitio.mjs [carpeta-de-trazas]
  *
- * Las trazas ya vienen nombradas por `tools/nombrar-trazas.mjs`. Si no se pasa
- * la carpeta, el sitio se monta sin ellas: el informe y las evidencias siguen
- * publicándose, que es lo que interesa si algo falla al capturarlas.
+ * Las trazas vienen ya nombradas por tools/nombrar-trazas.mjs. Sin esa carpeta
+ * el sitio se monta igual, solo que sin ellas.
  */
 import {
   copyFileSync,
@@ -38,12 +33,11 @@ const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DESTINO = join(RAIZ, '_sitio');
 
 /**
- * Copia recursiva a mano en lugar de `fs.cpSync(..., { recursive: true })`.
+ * Copia recursiva a mano, no `fs.cpSync(..., { recursive: true })`.
  *
- * No es una preferencia de estilo: sobre la carpeta de evidencias, `cpSync`
- * mata el proceso de Node en Windows con código 127, sin lanzar excepción y
- * sin escribir nada en la salida de error, de modo que ni un `try/catch`
- * alrededor lo captura. Doce líneas propias evitan depender de eso.
+ * No es manía: sobre la carpeta de evidencias, cpSync mata el proceso de Node
+ * en Windows con código 127, sin excepción y sin escribir nada en stderr, así
+ * que ni un try/catch alrededor lo pilla.
  */
 function copiarCarpeta(origen, destino) {
   mkdirSync(destino, { recursive: true });

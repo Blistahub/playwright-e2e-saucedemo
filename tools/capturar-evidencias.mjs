@@ -1,28 +1,19 @@
 #!/usr/bin/env node
 /**
- * Genera las evidencias visuales del repositorio.
- *
- * Las capturas de los reportes de defecto y el GIF del README no se hacen a
- * mano: se generan desde aquí, con la misma aplicación y los mismos usuarios
- * que usa la suite. Una captura suelta guardada en una carpeta envejece sin
- * que nadie se entere; una que se regenera con un comando se puede rehacer el
- * día que la aplicación cambie.
+ * Genera las evidencias visuales: las capturas de los defectos y el GIF.
  *
  *   npm run evidencias
  *
- * Produce en `evidencias/`:
- *   HAL-01 … HAL-05 .png   una por defecto documentado
- *   compra-completa.gif    el caso CP-16 de extremo a extremo
+ * Se generan contra la app real, con los mismos usuarios que la suite. Una
+ * captura hecha a mano envejece sin que nadie se entere; esta se rehace con un
+ * comando el día que cambie lo que ilustra.
  *
- * No corre en integración continua a propósito: el resultado se versiona y
- * solo hay que rehacerlo cuando cambia aquello que ilustra.
+ * No corre en CI: el resultado se versiona.
  *
- * Sobre el GIF: el ffmpeg que trae Playwright es una compilación mínima que
- * solo sabe escribir `webm` e `image2`, sin el muxer de GIF. En vez de exigir
- * un ffmpeg completo instalado en el sistema, se capturan los fotogramas de
- * los momentos que importan y se codifican aquí con dos librerías puras de
- * JavaScript y sin dependencias transitivas. Sale además un GIF más legible
- * que un vídeo a 10 fps: una secuencia de pasos, no una animación borrosa.
+ * El GIF no usa ffmpeg. El que trae Playwright solo escribe webm e image2, sin
+ * muxer de GIF, así que en vez de pedir un ffmpeg completo instalado se
+ * capturan los fotogramas de los momentos clave y se codifican aquí. Sale
+ * además más legible que un vídeo a 10 fps.
  */
 import { chromium } from '@playwright/test';
 /* gifenc se publica como CommonJS, así que no expone exportaciones con nombre

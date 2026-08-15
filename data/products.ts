@@ -1,8 +1,8 @@
 /**
- * Catálogo de SauceDemo. Es fijo: seis productos, sin paginación.
+ * Catálogo de SauceDemo: seis productos fijos, sin paginación.
  *
- * Los nombres se centralizan aquí para que un cambio en el catálogo se corrija
- * en un único punto y no en quince ficheros de test.
+ * Centralizados aquí para que un cambio se corrija en un sitio y no en quince
+ * ficheros de test.
  */
 export const PRODUCTS = {
   backpack: 'Sauce Labs Backpack',
@@ -15,15 +15,14 @@ export const PRODUCTS = {
 
 export type ProductName = (typeof PRODUCTS)[keyof typeof PRODUCTS];
 
-/** Número de artículos del catálogo. Se comprueba en la prueba de humo. */
+/** Artículos del catálogo. Lo comprueba la prueba de humo. */
 export const CATALOG_SIZE = 6;
 
 /**
- * Tipo impositivo aplicado por SauceDemo en el resumen de compra.
+ * Impuesto que aplica SauceDemo en el resumen.
  *
- * Verificado contra la aplicación en cuatro cestas distintas antes de fijarlo
- * aquí —7,99 $, 29,99 $, 31,98 $ y 59,98 $—, no deducido de una sola. Lo que
- * esos datos **no** permiten determinar es la regla de redondeo: está razonado
- * en `data/carts.ts`, junto a los juegos de datos de CP-17.
+ * Comprobado en cuatro cestas (7,99 · 29,99 · 31,98 · 59,98 $), no deducido de
+ * una sola. Lo que esos datos no permiten fijar es la regla de redondeo: está
+ * explicado en `data/carts.ts`.
  */
 export const TAX_RATE = 0.08;

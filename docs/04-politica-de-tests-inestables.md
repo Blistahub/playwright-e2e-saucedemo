@@ -53,15 +53,14 @@ Estas decisiones están tomadas en el código y son las que mantienen la suite e
 
 - **Cero esperas fijas, y no por confianza.** Toda la sincronización se apoya en las aserciones con
   reintento de Playwright, que esperan a que la condición se cumpla en lugar de a que pase un
-  tiempo. La regla `playwright/no-wait-for-timeout` lo impone: añadir una espera fija no pasa la
-  integración continua. Un criterio que depende de que nadie se despiste no es un criterio.
+  tiempo. Lo impone `playwright/no-wait-for-timeout`: añadir una espera fija no pasa la CI.
 - **Aislamiento por contexto.** Cada test recibe un contexto de navegador nuevo. El estado de
   SauceDemo vive en una cookie, así que muere con él: no hay estado que arrastrar entre tests ni
   limpieza que se pueda olvidar.
 - **Aserciones sobre conjuntos cuando el orden no es un requisito.** En CP-09 se comprueba qué
-  productos hay en el carrito, no en qué orden. En CP-14 y CP-15 se comprueba que los precios no
-  rompen la monotonía, no una secuencia exacta: dos artículos cuestan 15,99 $ y la aplicación no
-  promete cómo desempata. Exigir un orden que nadie ha prometido es fabricarse un test inestable.
+  productos hay en el carrito, no en qué orden. En CP-14 y CP-15 se comprueba la monotonía y no una
+  secuencia exacta: dos artículos cuestan 15,99 $ y la app no promete cómo desempata. Exigir un
+  orden que nadie ha prometido es fabricarse un test inestable.
 - **Umbrales de tiempo holgados y absolutos.** El único test que mide tiempo (HAL-05) usa un
   presupuesto muy por debajo de la demora real, para que la velocidad del entorno no decida el
   resultado.

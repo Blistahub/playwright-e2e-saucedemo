@@ -107,8 +107,8 @@ Error → "Error: Last Name is required"
 
 ### Verificación
 
-Antes de reportarlo se descartaron dos explicaciones alternativas, porque un defecto que el equipo
-de desarrollo cierra como no reproducible cuesta más que no haberlo reportado:
+Antes de reportarlo se descartaron dos explicaciones alternativas: un defecto que el equipo cierra
+como «no reproducible» cuesta más que no haberlo reportado.
 
 | Hipótesis | Comprobación | Resultado |
 | --- | --- | --- |

@@ -60,16 +60,14 @@ es la restricción de diseño principal, y de ahí salen dos reglas:
   dan por hecho a través de la *fixture* de sesión. Es también el motivo de que «Reset App State»
   quede fuera: vaciaría el carrito por una vía que CP-10 ya cubre por la que usa un cliente.
 
-Y de ahí sale también la excepción. `support/money.ts` —la conversión de importes— es la única
-lógica pura del repositorio, y comprobar un redondeo levantando tres navegadores sería pagar el
-precio más alto de la pirámide por la comprobación más barata. Sus 9 casos corren en el proyecto
-`unidad`, sin navegador, dentro del job de calidad: menos de un segundo frente a los treinta y
-ocho de la matriz.
+De ahí sale también la excepción. `support/money.ts` —la conversión de importes— es la única lógica
+pura del repositorio, y comprobar un redondeo levantando tres navegadores sería pagar lo más caro
+por lo más barato. Sus 9 casos corren en el proyecto `unidad`, sin navegador, dentro del job de
+calidad: menos de un segundo frente al minuto de la matriz.
 
-No es una demostración de que existe la pirámide: **U-04 fija un defecto real** que tenía
-`parsePrice`, invisible con los importes de dos cifras del catálogo actual. Es la clase de fallo
-que un test de interfaz no encuentra porque nunca le presenta a la función una entrada que lo
-provoque.
+No están para poder decir «pirámide»: **U-04 fija un defecto real** de `parsePrice`, invisible con
+los importes de dos cifras del catálogo. Es la clase de fallo que un test de interfaz no encuentra,
+porque nunca le pasa a la función una entrada que lo provoque.
 
 ### 3.2 Técnicas de diseño aplicadas
 
@@ -173,8 +171,8 @@ SauceDemo incluye usuarios rotos a propósito. Se han encontrado cinco defectos 
 Esos tests **afirman el comportamiento correcto** y se marcan con `test.fail()`, que en Playwright
 significa «se espera que este test falle». Con eso:
 
-- La suite se queda en verde: un defecto conocido y documentado no vuelve a ser una alarma nueva
-  cada mañana. Una suite que grita todos los días es una suite que nadie mira.
+- La suite se queda en verde: un defecto ya documentado no tiene que ser una alarma nueva cada
+  mañana; si grita todos los días, nadie la mira.
 - Si el fabricante lo corrige, el test pasará y Playwright lo marcará como **fallo inesperado**. La
   corrección avisa sola.
 - El comportamiento esperado queda escrito en código ejecutable, no en una frase de un documento

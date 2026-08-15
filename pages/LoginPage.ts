@@ -3,9 +3,8 @@ import type { Locator, Page } from '@playwright/test';
 /**
  * Pantalla de acceso.
  *
- * No hereda de `BasePage` a propósito: es la única vista sin cabecera ni
- * carrito, y heredar localizadores que aquí nunca existen invitaría a
- * escribir esperas contra elementos imposibles.
+ * No hereda de BasePage: es la única vista sin cabecera ni carrito, y heredar
+ * localizadores que aquí no existen invita a esperar por elementos imposibles.
  */
 export class LoginPage {
   private readonly page: Page;
@@ -27,11 +26,7 @@ export class LoginPage {
     await this.page.goto('/');
   }
 
-  /**
-   * Rellena el formulario y lo envía. No comprueba el resultado: eso es
-   * responsabilidad del test, que unas veces espera entrar y otras espera
-   * un error concreto.
-   */
+  /** Envía el formulario. No comprueba el resultado: eso lo decide el test. */
   async login(username: string, password: string): Promise<void> {
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);

@@ -1,23 +1,19 @@
 #!/usr/bin/env node
 /**
- * Verificador de consistencia entre la suite y su documentación.
+ * Comprueba que la documentación siga cuadrando con la suite.
  *
- * Una matriz de treinta casos con referencias cruzadas se desincroniza sola a
- * la tercera modificación: se añade un caso y la cifra del README se queda
- * atrás, se renombra un fichero y un enlace del plan deja de resolver. Nada de
- * eso rompe los tests, así que nadie se entera hasta que alguien lee la
- * documentación y descubre que miente.
+ * Una matriz de treinta casos se desincroniza sola: añades un caso y la cifra
+ * del README se queda atrás, renombras un fichero y un enlace deja de
+ * resolver. Nada de eso rompe un test, así que no se nota hasta que alguien lee
+ * los documentos y ve que mienten.
  *
- * Este script comprueba cuatro cosas contra la suite real, no contra lo que la
- * documentación cree:
+ * Comprueba contra la suite real, no contra lo que la documentación cree:
+ *   1. Todo caso de la suite está en la matriz y al revés.
+ *   2. Las cifras declaradas son las reales.
+ *   3. Los enlaces internos resuelven.
+ *   4. Los anclajes apuntan a encabezados que existen.
  *
- *   1. Todo caso de la suite está en la matriz, y todo caso de la matriz existe.
- *   2. Las cifras declaradas —casos, ejecuciones, etiquetas— son las reales.
- *   3. Los enlaces internos entre documentos resuelven a ficheros que existen.
- *   4. Los anclajes de sección apuntan a encabezados que existen.
- *
- * Devuelve código de salida 1 si algo no cuadra, así que puede encadenarse
- * en integración continua.
+ * Sale con 1 si algo no cuadra, para encadenarlo en CI.
  *
  *   node tools/verificar.mjs
  */
@@ -40,10 +36,9 @@ const PROYECTO_UNITARIO = 'unidad';
 /* ------------------------------------------------------------------ */
 
 /**
- * Pregunta a Playwright qué casos existen de verdad.
+ * Qué casos existen de verdad, según Playwright.
  *
- * `--list` no levanta navegadores ni toca la red: es una lectura estática de
- * los ficheros de test, así que el verificador sigue siendo barato de ejecutar.
+ * `--list` no levanta navegadores ni toca la red, así que esto es barato.
  */
 function leerSuite() {
   const bruto = execSync('npx playwright test --list --reporter=json', {
@@ -69,10 +64,9 @@ function leerSuite() {
   };
   for (const suite of json.suites ?? []) recorrer(suite);
 
-  /* Un «caso» es un título dentro de un fichero; sus ejecuciones son ese caso
-     repetido en cada navegador de la matriz. Los unitarios corren una sola vez
-     y en su propio proyecto, así que se cuentan aparte: mezclarlos inflaría la
-     cifra de cobertura de la interfaz con comprobaciones que no la tocan. */
+  // Un «caso» es un título dentro de un fichero; las ejecuciones son ese caso
+  // por cada navegador. Los unitarios van aparte: mezclarlos inflaría la
+  // cobertura de interfaz con comprobaciones que no la tocan.
   const porCapa = (esUnitario) => {
     const seleccion = ejecuciones.filter(
       (e) => (e.proyecto === PROYECTO_UNITARIO) === esUnitario,
@@ -137,10 +131,10 @@ function comprobarCasos(suite) {
 /* ------------------------------------------------------------------ */
 
 /**
- * Cada patrón captura una cifra concreta en la prosa y dice con qué magnitud
- * real debe coincidir. Se eligen expresiones inequívocas a propósito: contar
- * cualquier «N casos» daría falsos positivos con las tablas de cobertura, que
- * hablan de los casos de una funcionalidad y no del total.
+ * Cada patrón captura una cifra de la prosa y con qué magnitud debe cuadrar.
+ * Las expresiones son deliberadamente concretas: contar cualquier «N casos»
+ * daría falsos positivos con las tablas de cobertura, que hablan de una
+ * funcionalidad y no del total.
  */
 function comprobarCifras(suite) {
   const hallazgos = suite.e2e.casos.filter((c) => c.titulo.includes('@hallazgo')).length;
@@ -198,14 +192,11 @@ function comprobarCifras(suite) {
 /* ------------------------------------------------------------------ */
 
 /**
- * Reproduce cómo GitHub convierte un encabezado en anclaje: minúsculas, fuera
- * la puntuación y cada espacio a un guion.
+ * Igual que hace GitHub: minúsculas, fuera la puntuación, cada espacio a guion.
  *
- * «Cada espacio», no «cada racha de espacios». Es la diferencia que importa:
- * al quitar la raya de «automatiza — y por qué» quedan dos espacios seguidos,
- * y GitHub genera dos guiones. Colapsarlos daba por roto un enlace que
- * funciona, que es el peor fallo posible en un verificador: enseña a
- * desconfiar de él y a ignorarlo.
+ * CADA espacio, no cada racha. Al quitar la raya de «automatiza — y por qué»
+ * quedan dos espacios seguidos y GitHub pone dos guiones. Colapsarlos daba por
+ * roto un enlace que funcionaba.
  */
 function anclar(encabezado) {
   return encabezado

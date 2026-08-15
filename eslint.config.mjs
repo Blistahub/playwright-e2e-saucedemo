@@ -5,11 +5,9 @@ import playwright from 'eslint-plugin-playwright';
 /**
  * Reglas de la suite.
  *
- * El criterio para incluir una regla es que **impida un fallo real**, no que
- * uniforme el estilo. La documentación de este repositorio afirma varias cosas
- * sobre cómo está escrita la suite —que no hay esperas fijas, que no queda
- * ningún test enfocado— y una afirmación que solo vive en un README envejece
- * mal. Las que se pueden comprobar con una regla se comprueban con una regla.
+ * Criterio para incluir una regla: que impida un fallo real, no que uniforme
+ * el estilo. Varias sostienen cosas que el README afirma (cero esperas fijas,
+ * ningún test.only), y una afirmación que solo vive en un README envejece mal.
  */
 export default tseslint.config(
   {
@@ -20,8 +18,8 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
 
   {
-    /* Las reglas que necesitan información de tipos solo pueden aplicarse a lo
-       que el tsconfig incluye, y el tsconfig solo incluye TypeScript. */
+    // Las reglas con información de tipos solo valen para lo que el tsconfig
+    // incluye, y el tsconfig solo incluye TypeScript.
     files: ['**/*.ts'],
     languageOptions: {
       parserOptions: {
@@ -30,13 +28,12 @@ export default tseslint.config(
       },
     },
     rules: {
-      /* Una promesa sin await en un test produce el peor resultado posible:
-         pasa siempre, porque la aserción se evalúa cuando el test ya terminó.
-         Es la regla más valiosa del conjunto. */
+      // Una promesa sin await hace que el test pase SIEMPRE: la aserción se
+      // evalúa cuando ya ha terminado. La regla más útil del conjunto.
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
 
-      /* `any` desactiva justo lo que se buscaba al elegir TypeScript. */
+      // `any` desactiva justo lo que se buscaba al elegir TypeScript.
       '@typescript-eslint/no-explicit-any': 'error',
 
       '@typescript-eslint/consistent-type-imports': [
@@ -52,41 +49,35 @@ export default tseslint.config(
     rules: {
       ...playwright.configs['flat/recommended'].rules,
 
-      /* La regla que sostiene una afirmación del README: cero esperas fijas.
-         `waitForTimeout` hace que el test pase hoy en esta máquina y falle el
-         día que el runner vaya cargado. Deja de ser un criterio de revisión
-         que alguien puede olvidar y pasa a ser un error que corta la CI. */
+      // Cero esperas fijas. `waitForTimeout` hace que el test pase hoy aquí y
+      // falle el día que el runner vaya cargado.
       'playwright/no-wait-for-timeout': 'error',
 
-      /* Complementa a `forbidOnly` de la configuración: allí se detecta al
-         ejecutar en CI, aquí antes de llegar a abrir el pull request. */
+      // Complementa a `forbidOnly`: allí se detecta al ejecutar, aquí antes.
       'playwright/no-focused-test': 'error',
 
-      /* Un `expect` sin await no espera nada y no comprueba nada. */
+      // Un `expect` sin await no espera nada y no comprueba nada.
       'playwright/missing-playwright-await': 'error',
 
-      /* Una aserción dentro de un `if` puede no ejecutarse nunca, y el test
-         pasaría igual sin haber comprobado nada. */
+      // Un assert dentro de un `if` puede no ejecutarse y el test pasa igual.
       'playwright/no-conditional-expect': 'error',
       'playwright/no-conditional-in-test': 'error',
 
-      /* Todo test tiene que afirmar algo. Uno que solo navega comprueba
-         únicamente que la aplicación no lanza una excepción. */
+      // Un test que solo navega comprueba únicamente que no hay excepción.
       'playwright/expect-expect': 'error',
 
-      /* `{ force: true }` salta las comprobaciones de visibilidad y de que el
-         elemento sea accionable: oculta justo el defecto que se busca. */
+      // `{ force: true }` se salta visibilidad y accionabilidad: oculta justo
+      // el defecto que se busca.
       'playwright/no-force-option': 'error',
 
-      /* Restos de depuración que no deben llegar al repositorio. */
+      // Restos de depuración.
       'playwright/no-page-pause': 'error',
       'playwright/no-skipped-test': 'warn',
     },
   },
 
   {
-    /* El verificador y esta propia configuración son scripts de Node sueltos,
-       fuera del tsconfig: se les desactivan las reglas que exigen tipos. */
+    // Scripts de Node sueltos, fuera del tsconfig: sin reglas de tipos.
     files: ['**/*.mjs'],
     extends: [tseslint.configs.disableTypeChecked],
     languageOptions: {

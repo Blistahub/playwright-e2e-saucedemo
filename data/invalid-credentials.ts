@@ -1,10 +1,10 @@
 import { PASSWORD, USERS } from './users';
 
-/** Un intento de acceso que debe ser rechazado, y el mensaje exacto esperado. */
+/** Intento de acceso que debe rechazarse, con el mensaje exacto esperado. */
 export interface InvalidLoginCase {
-  /** Identificador del caso en la matriz de pruebas. */
+  /** Identificador en la matriz de pruebas. */
   id: string;
-  /** Qué se prueba, tal y como aparece en el título del test. */
+  /** Qué se prueba, tal cual aparece en el título del test. */
   description: string;
   username: string;
   password: string;
@@ -14,13 +14,11 @@ export interface InvalidLoginCase {
 /**
  * Juegos de datos del test parametrizado de acceso.
  *
- * Cada caso sale de una partición de equivalencia distinta —credenciales que
- * no casan, cuenta bloqueada, campo obligatorio vacío—, no de repetir la misma
- * clase con valores diferentes. Añadir un caso aquí añade un test; no hay que
- * tocar el fichero de pruebas.
+ * Cada caso es una partición distinta —credenciales que no casan, cuenta
+ * bloqueada, campo vacío—, no la misma clase con valores diferentes. Añadir un
+ * caso es añadir una entrada aquí, sin tocar el fichero de tests.
  *
- * Los mensajes esperados están copiados literalmente de la aplicación, no
- * escritos de memoria.
+ * Los mensajes están copiados de la app, no escritos de memoria.
  */
 export const INVALID_LOGINS: InvalidLoginCase[] = [
   {

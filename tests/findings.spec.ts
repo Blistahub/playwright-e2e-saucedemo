@@ -7,28 +7,20 @@ import { SORT_OPTIONS } from '../pages/InventoryPage';
 /**
  * Defectos confirmados de SauceDemo.
  *
- * Estos tests afirman el comportamiento CORRECTO —el que debería tener la
- * aplicación— y se marcan con `test.fail()`, que en Playwright significa «se
- * espera que este test falle». Tiene tres consecuencias, y las tres son
- * deliberadas:
+ * Estos tests afirman el comportamiento CORRECTO y llevan `test.fail()`, que en
+ * Playwright significa «se espera que falle». Así:
  *
- *  1. La suite sigue en verde: un defecto conocido y documentado no es una
- *     alarma nueva cada mañana, y una suite que grita todos los días acaba
- *     siendo una suite que nadie mira.
- *  2. El día que el fabricante lo corrija, el test pasará y Playwright lo
- *     marcará como fallo inesperado: la corrección avisa sola de que hay un
- *     defecto que cerrar y una aserción que devolver a la suite normal.
- *  3. La aserción documenta el comportamiento esperado en código ejecutable,
- *     no en una frase de un documento que nadie vuelve a abrir.
+ *  - la suite sigue en verde, y un defecto ya documentado no vuelve a ser una
+ *    alarma nueva cada mañana;
+ *  - si lo corrigen, el test pasa y Playwright lo marca como fallo inesperado,
+ *    o sea, la corrección avisa sola;
+ *  - lo esperado queda en código y no en un documento que nadie reabre.
  *
- * La técnica tiene un coste que conviene tener presente al leer estos tests:
- * `test.fail()` da por esperado **cualquier** fallo, no solo el previsto. Si
- * se rompiera el acceso de `problem_user`, HAL-02 seguiría fallando y la suite
- * seguiría en verde, tapando una avería real. Qué acota ese riesgo y qué queda
- * como revisión manual está en `docs/01-plan-de-automatizacion.md`, § 6.1.
+ * Contra: `test.fail()` da por esperado CUALQUIER fallo, no solo el previsto.
+ * Si se rompiera el login de problem_user, HAL-02 seguiría fallando y la suite
+ * en verde. Qué acota eso, en el plan § 6.1.
  *
- * El detalle de cada defecto —severidad, impacto y reproducción— está en
- * `docs/03-hallazgos.md`.
+ * Detalle de cada defecto en docs/03-hallazgos.md.
  */
 
 test.describe('Defectos de problem_user', () => {
@@ -40,7 +32,7 @@ test.describe('Defectos de problem_user', () => {
     test.fail();
     test.info().annotations.push({
       type: 'defecto',
-      description: 'HAL-01 · todas las tarjetas muestran la misma imagen de error (sl-404)',
+      description: 'HAL-01 · las 6 tarjetas cargan la misma imagen (sl-404)',
     });
 
     const sources = await inventoryPage.imageSources();
@@ -60,7 +52,7 @@ test.describe('Defectos de problem_user', () => {
     test.fail();
     test.info().annotations.push({
       type: 'defecto',
-      description: 'HAL-02 · lo tecleado en «Last Name» se escribe en «First Name» y el apellido queda vacío',
+      description: 'HAL-02 · lo tecleado en «Last Name» se escribe en «First Name»',
     });
 
     await inventoryPage.addToCart(PRODUCTS.backpack);
@@ -70,9 +62,8 @@ test.describe('Defectos de problem_user', () => {
     await checkoutPage.firstNameInput.fill(VALID_CUSTOMER.firstName);
     await checkoutPage.lastNameInput.fill(VALID_CUSTOMER.lastName);
 
-    /* Tiempo de espera corto: se sabe que la aserción va a fallar, y dejar que
-       agote el de por defecto añadiría siete segundos por hallazgo a cada
-       ejecución de la suite sin cambiar el resultado. */
+    // Espera corta: sabemos que falla, y agotar los 7 s por defecto añadiría
+    // siete segundos por hallazgo a cada ejecución sin cambiar nada.
     await expect(checkoutPage.lastNameInput).toHaveValue(VALID_CUSTOMER.lastName, {
       timeout: 2_000,
     });
@@ -91,7 +82,7 @@ test.describe('Defectos de error_user', () => {
     test.fail();
     test.info().annotations.push({
       type: 'defecto',
-      description: 'HAL-03 · «Remove» no descuenta la unidad: el contador se queda como estaba',
+      description: 'HAL-03 · «Remove» no descuenta la unidad',
     });
 
     await inventoryPage.addToCart(PRODUCTS.backpack);
@@ -100,7 +91,6 @@ test.describe('Defectos de error_user', () => {
 
     await inventoryPage.removeFromCart(PRODUCTS.backpack);
 
-    /* Tiempo de espera corto por el mismo motivo que en HAL-02. */
     await expect(inventoryPage.cartBadge).toHaveText('1', { timeout: 2_000 });
   });
 
@@ -110,16 +100,14 @@ test.describe('Defectos de error_user', () => {
     test.fail();
     test.info().annotations.push({
       type: 'defecto',
-      description: 'HAL-04 · el desplegable acepta el criterio pero la lista no se reordena',
+      description: 'HAL-04 · el desplegable acepta el criterio pero la lista no cambia',
     });
 
     const before = await inventoryPage.visiblePrices();
     await inventoryPage.sortBy(SORT_OPTIONS.priceDesc);
     const after = await inventoryPage.visiblePrices();
 
-    /* Se comprueba lo que promete el desplegable: la lista queda de mayor a
-       menor. Se registra también el orden previo para que el reporte muestre
-       que la secuencia no ha cambiado en absoluto. */
+    // Se guarda el orden previo para que el informe enseñe que no cambió nada.
     expect(after, `Orden antes: ${before.join(', ')} · después: ${after.join(', ')}`).toEqual(
       [...after].sort((a, b) => b - a),
     );

@@ -1,4 +1,4 @@
-/** Datos del comprador que exige el primer paso del checkout. */
+/** Datos que pide el primer paso del checkout. */
 export interface Customer {
   firstName: string;
   lastName: string;
@@ -11,21 +11,22 @@ export const VALID_CUSTOMER: Customer = {
   postalCode: '28001',
 };
 
-/** Un caso de datos incompletos y el error que debe devolver la aplicación. */
+/** Datos incompletos y el error que debe devolver la app. */
 export interface IncompleteCustomerCase {
-  /** Identificador del caso en la matriz de pruebas. */
+  /** Identificador en la matriz de pruebas. */
   id: string;
-  /** Qué se omite, tal y como aparece en el título del test. */
+  /** Qué falta, tal cual aparece en el título del test. */
   description: string;
   customer: Customer;
   expectedError: string;
 }
 
 /**
- * Un caso por campo obligatorio. La aplicación valida en orden —nombre,
- * apellido, código postal— así que cada caso deja vacío únicamente el campo
- * bajo prueba y rellena los anteriores: de otro modo el primer error taparía
- * a los demás y tres casos comprobarían lo mismo.
+ * Un caso por campo obligatorio.
+ *
+ * La app valida en orden —nombre, apellido, código postal—, así que cada caso
+ * vacía solo el campo bajo prueba y rellena los anteriores. Si no, el primer
+ * error taparía a los demás y los tres comprobarían lo mismo.
  */
 export const INCOMPLETE_CUSTOMERS: IncompleteCustomerCase[] = [
   {

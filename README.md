@@ -93,7 +93,7 @@ campo, el segundo vacío y la compra detenida. ·
 **[Recorrer la traza paso a paso](https://trace.playwright.dev/?trace=https://blistahub.github.io/playwright-e2e-saucedemo/trazas/HAL-02.zip)**</sub>
 
 Antes de reportarlo se descartaron las dos explicaciones alternativas, porque un defecto que el
-equipo de desarrollo cierra como no reproducible cuesta más que no haberlo reportado:
+equipo cierra como «no reproducible» cuesta más que no haberlo reportado:
 
 | Hipótesis | Comprobación | Resultado |
 | --- | --- | --- |
@@ -118,8 +118,8 @@ test('HAL-03 · el botón «Remove» debe retirar el producto del carrito @halla
 
 Tiene tres consecuencias, y las tres son deliberadas:
 
-- **La suite sigue en verde.** Un defecto conocido y documentado no vuelve a ser una alarma nueva
-  cada mañana. Una suite que grita todos los días es una suite que nadie mira.
+- **La suite sigue en verde.** Un defecto ya documentado no tiene que ser una alarma nueva cada
+  mañana; si grita todos los días, nadie la mira.
 - **Si el fabricante lo corrige, el test pasa y Playwright lo marca como fallo inesperado.** La
   corrección avisa sola de que hay un defecto que cerrar.
 - **El comportamiento esperado queda en código ejecutable**, no en una frase de un documento que
@@ -129,11 +129,10 @@ La alternativa habitual —comentar el test, o afirmar el comportamiento defectu
 consagra el defecto como si fuera el requisito, y el día que se arregle la suite se pone en rojo
 por haberlo arreglado.
 
-**Y lo que la técnica no cubre, dicho también:** `test.fail()` da por esperado *cualquier* fallo,
-no solo el previsto. Si se rompiera el acceso de `problem_user`, HAL-02 seguiría fallando y la
-suite seguiría en verde, tapando una avería real. Qué acota ese riesgo y qué queda como revisión
-manual está en [el plan, §6.1](docs/01-plan-de-automatizacion.md#61-lo-que-esta-técnica-no-cubre).
-Una técnica que solo se presenta por sus ventajas está a medio explicar.
+**Lo que no cubre, dicho también:** `test.fail()` da por esperado *cualquier* fallo, no solo el
+previsto. Si se rompiera el login de `problem_user`, HAL-02 seguiría fallando y la suite en verde,
+tapando una avería real. Qué acota ese riesgo, en
+[el plan, §6.1](docs/01-plan-de-automatizacion.md#61-lo-que-esta-técnica-no-cubre).
 
 ### 3. Ningún selector fuera de `pages/`
 
@@ -190,8 +189,8 @@ expect(await overviewPage.subtotal()).toBeCloseTo(cartSubtotal, 2);
 expect(await overviewPage.tax()).toBeCloseTo(roundToCents(cartSubtotal * TAX_RATE), 2);
 ```
 
-Un test que comparase el total de la pantalla con el total de la pantalla pasaría aunque el importe
-fuese erróneo. **Es la diferencia entre comprobar y mirar.**
+Si comparase el total de la pantalla con el subtotal de la pantalla, pasaría aunque los dos
+estuvieran mal.
 
 Y hasta dónde llega ese oráculo también está escrito: los seis productos terminan en `,99`, así que
 **no existe cesta en este catálogo cuyo impuesto redondee a la baja**. La suite no puede distinguir
@@ -199,10 +198,9 @@ el redondeo al más cercano del redondeo sistemático al céntimo superior, y
 [así se declara](data/carts.ts) en lugar de dar por verificada una regla que los datos no permiten
 verificar.
 
-Por el mismo motivo, en la ordenación por precio no se exige una secuencia exacta: dos artículos
-cuestan lo mismo y la aplicación no promete cómo desempata. Se comprueba lo que sí es un
-requisito —que la serie no rompe la monotonía— y que no se ha perdido ningún artículo por el
-camino. Exigir un orden que nadie ha prometido es fabricarse un test inestable.
+Por lo mismo, en la ordenación por precio no se exige una secuencia exacta: dos artículos cuestan
+igual y la app no promete cómo desempata. Se comprueba la monotonía y que no falte ningún artículo.
+Exigir un orden que nadie ha prometido es fabricarse un test inestable.
 
 ### 6. Lo que este README afirma, la CI lo comprueba
 
@@ -236,10 +234,9 @@ verdad** —`--list`, que no levanta navegadores ni toca la red— y comprueba c
 todo caso de la suite está en la matriz y al revés, que las cifras declaradas son las reales, que
 los enlaces internos resuelven y que los anclajes apuntan a encabezados que existen.
 
-Las dos herramientas se probaron **al revés**, rompiendo cosas a propósito para confirmar que
-avisan. Y la primera incoherencia que encontró el verificador fue **suya**: daba por roto un
-anclaje correcto porque colapsaba los espacios consecutivos, y GitHub no lo hace. Una herramienta
-que señala fallos inexistentes enseña a ignorarla, que es la única forma de que deje de servir.
+Las dos se probaron **al revés**, rompiendo cosas a propósito para confirmar que avisan. Y la
+primera incoherencia que encontró el verificador fue **suya**: daba por roto un anclaje correcto
+porque colapsaba los espacios consecutivos, y GitHub no lo hace.
 
 ### 7. Cada comprobación, en la capa que le corresponde
 
@@ -397,11 +394,9 @@ del navegador ya no se descargan, pero las bibliotecas del sistema viven fuera d
 que instalarlas igual con `install-deps`, que pasa a costar entre 15 y 23 s. El techo de esta
 optimización lo pone `apt`, no la descarga.
 
-Se queda porque 30 s menos en la matriz son 30 s menos, y porque el siguiente paso —usar la imagen
-Docker oficial de Playwright, que trae binarios y dependencias— cambia bastante más de lo que
-mejora. Pero la cifra que se publica es la medida, no la que hacía bonito: **prometer el mejor
-número imaginable y no volver a comprobarlo es exactamente el hábito que este repositorio intenta
-no tener.**
+Se queda porque 30 s menos son 30 s menos, y porque el siguiente paso —la imagen Docker oficial de
+Playwright, que trae binarios y dependencias— cambia bastante más de lo que mejora. La cifra que
+aparece aquí es la medida, no la que quedaba mejor.
 
 ---
 

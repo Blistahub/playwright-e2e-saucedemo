@@ -1,46 +1,36 @@
 /**
- * Conversión de los importes que muestra la aplicación.
+ * Conversión de importes.
  *
- * SauceDemo los presenta como `$29.99` y las etiquetas del resumen como
- * `Item total: $37.98`. Las comparaciones se hacen sobre números, no sobre
- * cadenas: comparar textos haría que un cambio de formato —una coma decimal,
- * un símbolo distinto— rompiera tests que no prueban el formato.
+ * La app los muestra como `$29.99` y las etiquetas del resumen como
+ * `Item total: $37.98`. Se comparan como números, no como texto: así un cambio
+ * de formato no rompe tests que no prueban el formato.
  *
- * Estas dos funciones son la única lógica pura del repositorio, y por eso son
- * las únicas que se prueban por debajo de la interfaz: comprobar un redondeo
- * levantando tres navegadores sería pagar el precio más alto de la pirámide
- * por la comprobación más barata. Sus casos están en
- * `tests/unit/money.unit.spec.ts`.
+ * Es la única lógica pura del repo y por eso la única con tests unitarios
+ * (`tests/unit/money.unit.spec.ts`).
  */
 
 /**
- * Extrae el importe de un texto y lo devuelve como número.
+ * Saca el importe de un texto.
  *
- * Asume el formato estadounidense que usa la aplicación: la coma separa
- * millares y el punto, los decimales. Lanza si no encuentra un importe, en
- * lugar de devolver `NaN`: un `NaN` se propagaría silenciosamente hasta una
- * comparación que fallaría lejos de la causa.
+ * Formato de EE. UU., que es el que usa la app: coma para millares, punto para
+ * decimales. Lanza si no encuentra importe en vez de devolver NaN, que se
+ * propagaría hasta fallar lejos de la causa.
  */
 export function parsePrice(text: string | null): number {
   const match = text?.match(/\$\s*([\d.,]+)/);
   if (!match) {
     throw new Error(`No se ha encontrado un importe en el texto: "${text}"`);
   }
-  /* La sustitución es global a propósito. Con `replace(',', '')` solo caería
-     la primera coma, y «$1,234,567.89» se convertiría en 1234: un error que
-     no aparece con los importes de dos cifras del catálogo actual, pero que
-     esperaría callado a la primera cesta que pasara de mil. Lo fija U-04. */
+  // Global a propósito: con replace(',', '') solo cae la primera coma y
+  // «$1,234,567.89» acaba siendo 1234. Lo fija U-04.
   return Number.parseFloat(match[1].replace(/,/g, ''));
 }
 
 /**
- * Redondea a dos decimales evitando los sobrantes de la coma flotante.
+ * Redondea a dos decimales sin arrastrar el sobrante binario.
  *
- * `Math.round` redondea el medio hacia arriba, que es la regla que usa la
- * aplicación en los importes comprobados. La salvedad está documentada en
- * `data/carts.ts`: con este catálogo no hay ninguna cesta que caiga por
- * debajo del medio céntimo, así que la suite no puede distinguir esta regla
- * del redondeo sistemático al alza.
+ * `Math.round` sube el medio hacia arriba, que es lo que hace la app en los
+ * importes comprobados. La salvedad, en `data/carts.ts`.
  */
 export function roundToCents(value: number): number {
   return Math.round(value * 100) / 100;

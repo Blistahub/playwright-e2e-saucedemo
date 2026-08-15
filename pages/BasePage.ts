@@ -1,19 +1,13 @@
 import type { Locator, Page } from '@playwright/test';
 
-/**
- * Base común a todas las vistas posteriores al acceso.
- *
- * Concentra la cabecera y el menú lateral, que están presentes en todas ellas.
- * Sin esta clase, el localizador del carrito estaría repetido en las seis Page
- * Objects que heredan de aquí, y un rediseño obligaría a corregirlo seis veces.
- */
+/** Cabecera y menú, que son iguales en todas las vistas tras el login. */
 export abstract class BasePage {
   protected readonly page: Page;
 
-  /** Título de la vista actual: «Products», «Your Cart», «Checkout: Overview»… */
+  /** «Products», «Your Cart», «Checkout: Overview»… */
   readonly title: Locator;
   readonly cartLink: Locator;
-  /** Contador del carrito. No existe en el DOM cuando el carrito está vacío. */
+  /** No existe en el DOM si el carrito está vacío. */
   readonly cartBadge: Locator;
   readonly menuButton: Locator;
   readonly logoutLink: Locator;
@@ -24,29 +18,21 @@ export abstract class BasePage {
     this.cartLink = page.getByTestId('shopping-cart-link');
     this.cartBadge = page.getByTestId('shopping-cart-badge');
 
-    /* El atributo `data-test="open-menu"` está sobre el <img>, no sobre el
-       <button> que lo contiene, y el botón intercepta el clic: localizarlo por
-       `data-test` deja el test colgado hasta agotar el tiempo de espera. Se
-       localiza por rol accesible, que además es más estable ante rediseños. */
+    // OJO: el data-test="open-menu" está en el <img>, y el <button> que lo
+    // envuelve se come el clic. Por data-test el test se queda colgado.
     this.menuButton = page.getByRole('button', { name: 'Open Menu' });
 
     this.logoutLink = page.getByTestId('logout-sidebar-link');
 
-    /* El menú expone además «Reset App State». No se declara aquí porque
-       ningún caso lo usa, y un localizador sin uso es deuda que se arrastra:
-       parece cubierto lo que no lo está. Queda como hueco declarado en
-       docs/02-matriz-de-casos.md. */
+    // «Reset App State» no se declara: no lo usa ningún caso. Ver el hueco
+    // declarado en docs/02-matriz-de-casos.md.
   }
 
   async openCart(): Promise<void> {
     await this.cartLink.click();
   }
 
-  /**
-   * Unidades que muestra el contador del carrito.
-   * Devuelve 0 cuando el contador no está en el DOM, que es como la aplicación
-   * representa el carrito vacío.
-   */
+  /** Devuelve 0 si el contador no está: así representa la app el carrito vacío. */
   async cartCount(): Promise<number> {
     if ((await this.cartBadge.count()) === 0) {
       return 0;

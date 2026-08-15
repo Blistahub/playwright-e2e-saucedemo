@@ -3,12 +3,13 @@
 **Suite de regresión de extremo a extremo sobre una tienda en línea: del Page Object Model
 a la integración continua en tres motores de navegador.**
 
-31 casos · 93 ejecuciones por push · **5 defectos reales encontrados y documentados** ·
+31 casos E2E · 93 ejecuciones por push · **5 defectos reales encontrados y documentados** ·
 Page Object Model, *fixtures* y pruebas dirigidas por datos en TypeScript.
 
 [![Tests](https://github.com/Blistahub/playwright-e2e-saucedemo/actions/workflows/tests.yml/badge.svg)](https://github.com/Blistahub/playwright-e2e-saucedemo/actions/workflows/tests.yml)
-![Casos](https://img.shields.io/badge/casos-31-1F3A5F)
+![Casos E2E](https://img.shields.io/badge/casos_e2e-31-1F3A5F)
 ![Ejecuciones](https://img.shields.io/badge/ejecuciones_por_push-93-1F3A5F)
+![Unitarios](https://img.shields.io/badge/unitarios-9-1F3A5F)
 ![Navegadores](https://img.shields.io/badge/navegadores-Chromium_·_Firefox_·_WebKit-2d6a4f)
 ![Defectos](https://img.shields.io/badge/defectos_documentados-5-c0392b)
 ![Playwright](https://img.shields.io/badge/Playwright-TypeScript-45ba4b)
@@ -26,9 +27,10 @@ davidcoyamoreno@gmail.com</sub>
 | | |
 | --- | --- |
 | **Aplicación** | SauceDemo — tienda de demostración de Sauce Labs |
-| **Casos** | 26 funcionales + 5 de defecto conocido = **31** |
+| **Casos E2E** | 26 funcionales + 5 de defecto conocido = **31** |
 | **Ejecuciones por push** | **93** — los 31 casos en Chromium, Firefox y WebKit |
-| **Duración** | **~38 s** los tres navegadores en paralelo |
+| **Pruebas unitarias** | **9** sobre la única lógica pura del repositorio, en menos de un segundo |
+| **Duración** | **en torno a 1 min** los tres navegadores en paralelo. Medido entre 35 s y 65 s: la horquilla es la latencia de un sitio de terceros, no el código |
 | **Tests inestables** | **0** — ni esperas fijas ni dependencias entre tests |
 | **Defectos encontrados** | **5**, uno de ellos bloquea el flujo de compra |
 | **Cobertura** | Acceso, catálogo, ficha, carrito y compra completa. Queda [un hueco, declarado](docs/02-matriz-de-casos.md#hueco-declarado) en lugar de darlo por cubierto |
@@ -40,12 +42,12 @@ davidcoyamoreno@gmail.com</sub>
 ```bash
 npm ci
 npx playwright install --with-deps
-npm test                  # los 31 casos en los tres navegadores
+npm test                  # los 31 casos en los tres navegadores, más los unitarios
 ```
 
 | Comando | Qué hace |
 | --- | --- |
-| `npm test` | Suite completa, tres navegadores (~38 s) |
+| `npm test` | Suite completa: los 3 navegadores y los unitarios, en torno a 1 min |
 | `npm run test:chromium` | Solo Chromium — el ciclo rápido mientras se escribe |
 | `npm run test:humo` | Los 4 casos `@humo`: el mínimo para decir que la aplicación está en pie |
 | `npm run test:hallazgos` | Los 5 casos de defecto conocido |
@@ -226,7 +228,27 @@ avisan. Y la primera incoherencia que encontró el verificador fue **suya**: dab
 anclaje correcto porque colapsaba los espacios consecutivos, y GitHub no lo hace. Una herramienta
 que señala fallos inexistentes enseña a ignorarla, que es la única forma de que deje de servir.
 
-### 7. El criterio se ve en lo que se deja fuera
+### 7. Cada comprobación, en la capa que le corresponde
+
+La suite es la capa alta de la pirámide y así se declara. Pero `support/money.ts` —la conversión
+de importes— es lógica pura, y **comprobar un redondeo levantando tres navegadores es pagar el
+precio más alto por la comprobación más barata**. Sus 9 casos corren en un proyecto de Playwright
+sin navegador, dentro del job de calidad: menos de un segundo frente a los treinta y ocho de la
+matriz.
+
+No es un adorno para poder decir «pirámide». Uno de esos casos fija **un defecto real** que tenía
+el código:
+
+```ts
+// antes:  replace(',', '')  sustituye solo la PRIMERA coincidencia
+parsePrice('$1,234,567.89')   // → 1234
+```
+
+Invisible con los importes de dos cifras del catálogo actual, y esperando callado a la primera
+cesta que pasara de mil. Es la clase de fallo que un test de interfaz no encuentra, porque nunca
+le presenta a la función una entrada que lo provoque.
+
+### 8. El criterio se ve en lo que se deja fuera
 
 - **[Exclusiones justificadas una a una](docs/01-plan-de-automatizacion.md#22-qué-no-se-automatiza--y-por-qué):**
   regresión visual, carga, seguridad ofensiva, accesibilidad. Cada una con su motivo, no omitidas.
@@ -268,7 +290,7 @@ espera molestan, pero no impiden nada.
 | # | Documento | Qué contiene |
 | :---: | --- | --- |
 | 01 | [Plan de automatización](docs/01-plan-de-automatizacion.md) | Alcance, **exclusiones justificadas**, estrategia, arquitectura, criterios de salida y 5 riesgos |
-| 02 | [Matriz de casos](docs/02-matriz-de-casos.md) | Los 31 casos con su técnica de diseño y su fichero · cobertura y el hueco declarado |
+| 02 | [Matriz de casos](docs/02-matriz-de-casos.md) | Los 31 casos E2E con su técnica de diseño y su fichero, los 9 unitarios · cobertura y el hueco declarado |
 | 03 | [Hallazgos](docs/03-hallazgos.md) | Los 5 defectos con reproducción, evidencia e hipótesis descartadas |
 | 04 | [Política de tests inestables](docs/04-politica-de-tests-inestables.md) | Qué se hace cuando aparece uno, y qué no se hace nunca |
 
@@ -291,6 +313,7 @@ playwright-e2e-saucedemo/
 ├── data/            Usuarios, productos, cestas y juegos de datos
 ├── support/         Utilidades sin estado (conversión de importes)
 ├── tests/           Los casos, que solo describen comportamiento
+│   └── unit/            La capa baja: lógica pura, sin navegador
 ├── docs/            Plan, matriz, hallazgos y política de inestabilidad
 ├── tools/           Verificador de consistencia entre la suite y sus documentos
 ├── eslint.config.mjs   Reglas que impiden fallos, no que uniformen el estilo
@@ -330,7 +353,8 @@ test.use({ userName: USERS.problem });   // los hallazgos de problem_user
 
 | Job | Qué hace |
 | --- | --- |
-| **Calidad** | Tipos, reglas de la suite y consistencia de la documentación en menos de un minuto, sin levantar un navegador. Va en su propio job para que el fallo diga «es de código» o «la documentación se ha quedado atrás», no «ha fallado la suite» |
+| **Calidad** | Tipos, reglas de la suite, las 9 pruebas unitarias y la consistencia de la documentación, en segundos y sin levantar un navegador. Va en su propio job para que el fallo diga «es de código» o «la documentación se ha quedado atrás», no «ha fallado la suite» |
+| **Caché del navegador** | Descargar el navegador costaba 29 s en Chromium y ~50 s en WebKit, más que ejecutar la suite. Se cachea por versión de Playwright, con la clave derivada del `package-lock` para que una actualización la invalide sola |
 | **E2E ×3** | Matriz de Chromium, Firefox y WebKit en paralelo, con `fail-fast: false`: si Firefox falla, WebKit se ejecuta igual. Cada fallo se anota sobre el diff del pull request |
 | **Reporte unificado** | Une los tres reportes parciales en un único informe HTML, también —sobre todo— cuando algo ha fallado |
 | **Publicación** | Despliega el informe en [GitHub Pages](https://blistahub.github.io/playwright-e2e-saucedemo/). Va con `continue-on-error` a propósito: si Pages no está habilitado, la insignia debe seguir reflejando si los tests pasan, no si está configurado el alojamiento |

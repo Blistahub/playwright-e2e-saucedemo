@@ -36,6 +36,12 @@ jobs:
       - name: Comprobar tipos
         run: npm run typecheck
 
+      # La capa baja de la pirámide: la lógica pura de conversión de importes.
+      # No abre navegador, así que corre aquí en menos de un segundo en lugar
+      # de repetirse tres veces en la matriz comprobando siempre lo mismo.
+      - name: Ejecutar las pruebas unitarias
+        run: npx playwright test --project=unidad
+
       # Las reglas que sostienen lo que la documentación afirma sobre la suite:
       # cero esperas fijas, ningún test enfocado, ningún expect sin await y
       # ningún test sin aserciones. Una promesa sin await es el peor fallo
@@ -71,9 +77,28 @@ jobs:
 
       - run: npm ci
 
-      # Solo el navegador de este job de la matriz, no los tres.
+      # Descargar el navegador costaba 29 s en Chromium y cerca de 50 s en
+      # WebKit, más que ejecutar la suite entera. Se cachea por versión de
+      # Playwright: la clave sale del package-lock, así que una actualización
+      # de la dependencia invalida la caché por sí sola y nunca se ejecuta
+      # contra un navegador que no corresponde.
+      - name: Caché del navegador
+        id: cache-navegador
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles('package-lock.json') }}
+
       - name: Instalar navegador
+        if: steps.cache-navegador.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps ${{ matrix.project }}
+
+      # Las bibliotecas del sistema viven fuera de ~/.cache, así que la caché
+      # no las trae: hay que asegurarlas aunque el navegador ya esté. Sin esto,
+      # WebKit arrancaría contra un runner al que le faltan dependencias.
+      - name: Asegurar las dependencias del sistema
+        if: steps.cache-navegador.outputs.cache-hit == 'true'
+        run: npx playwright install-deps ${{ matrix.project }}
 
       # `blob` es el formato intermedio que permite unir después los tres
       # navegadores; `github` anota cada fallo sobre el diff del pull request.

@@ -48,15 +48,28 @@ Delimitar es la mitad del trabajo. Cada exclusión lleva su motivo:
 
 ### 3.1 Dónde encaja esta suite
 
-Es la capa alta de la pirámide: pocos tests, caros, que ejercitan el sistema completo por la
-interfaz. Con 31 casos por navegador, los tres motores en paralelo tardan unos 38 segundos en
-local. Ese presupuesto es la restricción de diseño principal, y de ahí salen dos reglas:
+El grueso es la capa alta de la pirámide: pocos tests, caros, que ejercitan el sistema completo
+por la interfaz. Con 31 casos por navegador, los tres motores en paralelo tardan en torno a un
+minuto en local. La medida oscila entre 35 y 65 segundos, y la horquilla es la latencia del sitio
+—que es de un tercero y no está bajo control de este repositorio—, no el código. Ese presupuesto
+es la restricción de diseño principal, y de ahí salen dos reglas:
 
 - **Un test comprueba un comportamiento.** No se encadenan diez verificaciones en un caso porque
   la primera que falle oculta las nueve siguientes.
 - **Nada se prueba dos veces por la interfaz.** El acceso se verifica en CP-01; los demás casos lo
   dan por hecho a través de la *fixture* de sesión. Es también el motivo de que «Reset App State»
   quede fuera: vaciaría el carrito por una vía que CP-10 ya cubre por la que usa un cliente.
+
+Y de ahí sale también la excepción. `support/money.ts` —la conversión de importes— es la única
+lógica pura del repositorio, y comprobar un redondeo levantando tres navegadores sería pagar el
+precio más alto de la pirámide por la comprobación más barata. Sus 9 casos corren en el proyecto
+`unidad`, sin navegador, dentro del job de calidad: menos de un segundo frente a los treinta y
+ocho de la matriz.
+
+No es una demostración de que existe la pirámide: **U-04 fija un defecto real** que tenía
+`parsePrice`, invisible con los importes de dos cifras del catálogo actual. Es la clase de fallo
+que un test de interfaz no encuentra porque nunca le presenta a la función una entrada que lo
+provoque.
 
 ### 3.2 Técnicas de diseño aplicadas
 

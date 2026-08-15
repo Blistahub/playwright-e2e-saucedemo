@@ -32,6 +32,9 @@ const fallo = (mensaje) => errores.push(mensaje);
 
 const leer = (rutaRelativa) => readFileSync(join(RAIZ, rutaRelativa), 'utf8');
 
+/** El proyecto de Playwright que agrupa la capa baja de la pirámide. */
+const PROYECTO_UNITARIO = 'unidad';
+
 /* ------------------------------------------------------------------ */
 /* Datos reales de la suite                                            */
 /* ------------------------------------------------------------------ */
@@ -58,7 +61,7 @@ function leerSuite() {
         ejecuciones.push({
           titulo: spec.title,
           fichero: spec.file,
-          navegador: test.projectName,
+          proyecto: test.projectName,
         });
       }
     }
@@ -67,24 +70,31 @@ function leerSuite() {
   for (const suite of json.suites ?? []) recorrer(suite);
 
   /* Un «caso» es un título dentro de un fichero; sus ejecuciones son ese caso
-     repetido en cada navegador de la matriz. */
-  const casos = new Map();
-  for (const ejecucion of ejecuciones) {
-    const clave = `${ejecucion.fichero}::${ejecucion.titulo}`;
-    if (!casos.has(clave)) casos.set(clave, ejecucion);
-  }
-
-  return {
-    casos: [...casos.values()],
-    ejecuciones,
-    navegadores: [...new Set(ejecuciones.map((e) => e.navegador))],
+     repetido en cada navegador de la matriz. Los unitarios corren una sola vez
+     y en su propio proyecto, así que se cuentan aparte: mezclarlos inflaría la
+     cifra de cobertura de la interfaz con comprobaciones que no la tocan. */
+  const porCapa = (esUnitario) => {
+    const seleccion = ejecuciones.filter(
+      (e) => (e.proyecto === PROYECTO_UNITARIO) === esUnitario,
+    );
+    const casos = new Map();
+    for (const ejecucion of seleccion) {
+      casos.set(`${ejecucion.fichero}::${ejecucion.titulo}`, ejecucion);
+    }
+    return {
+      casos: [...casos.values()],
+      ejecuciones: seleccion,
+      proyectos: [...new Set(seleccion.map((e) => e.proyecto))],
+    };
   };
+
+  return { e2e: porCapa(false), unidad: porCapa(true) };
 }
 
 /** `CP-17.1` y `CP-17.3` son juegos de datos del mismo caso: CP-17. */
 const normalizar = (id) => id.replace(/\.\d+$/, '');
 
-const extraerId = (titulo) => titulo.match(/^(CP|HAL)-\d+(\.\d+)?/)?.[0] ?? null;
+const extraerId = (titulo) => titulo.match(/^(CP|HAL|U)-\d+(\.\d+)?/)?.[0] ?? null;
 
 /* ------------------------------------------------------------------ */
 /* 1 · Casos de la suite frente a la matriz                            */
@@ -92,10 +102,12 @@ const extraerId = (titulo) => titulo.match(/^(CP|HAL)-\d+(\.\d+)?/)?.[0] ?? null
 
 function comprobarCasos(suite) {
   const enSuite = new Set();
-  for (const caso of suite.casos) {
+  for (const caso of [...suite.e2e.casos, ...suite.unidad.casos]) {
     const id = extraerId(caso.titulo);
     if (!id) {
-      fallo(`El caso «${caso.titulo}» (${caso.fichero}) no empieza por un identificador CP-nn o HAL-nn.`);
+      fallo(
+        `El caso «${caso.titulo}» (${caso.fichero}) no empieza por un identificador CP-nn, HAL-nn o U-nn.`,
+      );
       continue;
     }
     enSuite.add(normalizar(id));
@@ -103,7 +115,7 @@ function comprobarCasos(suite) {
 
   const matriz = leer('docs/02-matriz-de-casos.md');
   const enMatriz = new Set(
-    [...matriz.matchAll(/^\| (CP|HAL)-\d+/gm)].map((m) => m[0].replace('| ', '')),
+    [...matriz.matchAll(/^\| (CP|HAL|U)-\d+/gm)].map((m) => m[0].replace('| ', '')),
   );
 
   for (const id of [...enSuite].sort()) {
@@ -131,25 +143,26 @@ function comprobarCasos(suite) {
  * hablan de los casos de una funcionalidad y no del total.
  */
 function comprobarCifras(suite) {
-  const casosHumo = suite.casos.filter((c) => c.titulo.includes('@humo')).length;
-  const casosHallazgo = suite.casos.filter((c) => c.titulo.includes('@hallazgo')).length;
+  const hallazgos = suite.e2e.casos.filter((c) => c.titulo.includes('@hallazgo')).length;
 
   const real = {
-    casos: suite.casos.length,
-    ejecuciones: suite.ejecuciones.length,
-    funcionales: suite.casos.length - casosHallazgo,
-    hallazgos: casosHallazgo,
-    humo: casosHumo,
-    navegadores: suite.navegadores.length,
+    casos: suite.e2e.casos.length,
+    ejecuciones: suite.e2e.ejecuciones.length,
+    funcionales: suite.e2e.casos.length - hallazgos,
+    hallazgos,
+    humo: suite.e2e.casos.filter((c) => c.titulo.includes('@humo')).length,
+    navegadores: suite.e2e.proyectos.length,
+    unitarios: suite.unidad.casos.length,
   };
 
   const patrones = [
     [/(\d+) casos por navegador/g, 'casos'],
-    [/(\d+) casos · (\d+) ejecuciones/g, 'casos', 'ejecuciones'],
-    [/casos-(\d+)-/g, 'casos'],
+    [/(\d+) casos E2E · (\d+) ejecuciones/g, 'casos', 'ejecuciones'],
+    [/casos_e2e-(\d+)-/g, 'casos'],
     [/ejecuciones_por_push-(\d+)-/g, 'ejecuciones'],
+    [/unitarios-(\d+)-/g, 'unitarios'],
     [/los (\d+) casos en los tres navegadores/g, 'casos'],
-    [/los (\d+) casos con su técnica/g, 'casos'],
+    [/los (\d+) casos E2E con su técnica/g, 'casos'],
     [/los (\d+) resultados/g, 'ejecuciones'],
     [/\*\*(\d+)\*\* — los (\d+) casos en Chromium/g, 'ejecuciones', 'casos'],
     [/(\d+) casos funcionales/g, 'funcionales'],
@@ -157,6 +170,8 @@ function comprobarCifras(suite) {
     [/(\d+) casos: el mínimo/g, 'humo'],
     [/(\d+) casos: los defectos conocidos/g, 'hallazgos'],
     [/= \*\*(\d+) ejecuciones\*\*/g, 'ejecuciones'],
+    [/(\d+) pruebas unitarias/g, 'unitarios'],
+    [/(\d+) unitarios/g, 'unitarios'],
   ];
 
   for (const ruta of documentos()) {
@@ -250,9 +265,9 @@ const real = comprobarCifras(suite);
 comprobarEnlaces();
 
 console.log(
-  `Casos: ${real.casos} (${real.funcionales} funcionales · ${real.hallazgos} hallazgos) | ` +
-    `Navegadores: ${real.navegadores} | Ejecuciones: ${real.ejecuciones} | ` +
-    `Etiquetados @humo: ${real.humo} | Identificadores: ${ids.size}`,
+  `E2E: ${real.casos} casos (${real.funcionales} funcionales · ${real.hallazgos} hallazgos) ` +
+    `× ${real.navegadores} navegadores = ${real.ejecuciones} ejecuciones | ` +
+    `Unitarios: ${real.unitarios} | Etiquetados @humo: ${real.humo} | Identificadores: ${ids.size}`,
 );
 
 if (errores.length > 0) {

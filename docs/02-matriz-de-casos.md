@@ -1,13 +1,14 @@
 # Matriz de casos
 
-31 casos por navegador × 3 navegadores = **93 ejecuciones** por cada push.
+31 casos por navegador × 3 navegadores = **93 ejecuciones** por cada push, más 9 pruebas
+unitarias que corren una sola vez porque no tocan la interfaz.
 
 Los identificadores no se reutilizan. Si un caso se retira, su número se queda libre: reasignarlo
 rompería la trazabilidad de cualquier conversación o informe que lo mencionara.
 
 ---
 
-## Casos funcionales
+## Casos E2E funcionales
 
 | # | Caso | Fichero | Técnica de diseño | Etiqueta |
 | :---: | --- | --- | --- | :---: |
@@ -52,6 +53,29 @@ en [`03-hallazgos.md`](03-hallazgos.md).
 | HAL-04 | El criterio de orden debe reordenar el catálogo | `error_user` | [`findings.spec.ts`](../tests/findings.spec.ts) | `@hallazgo` |
 | HAL-05 | El acceso debe completarse dentro del presupuesto de tiempo | `performance_glitch_user` | [`findings-performance.spec.ts`](../tests/findings-performance.spec.ts) | `@hallazgo` |
 
+## Casos unitarios
+
+La capa baja de la pirámide. `support/money.ts` es la única lógica pura del repositorio, y
+comprobar un redondeo levantando tres navegadores sería pagar el precio más alto por la
+comprobación más barata. Corren en el job de calidad, en menos de un segundo y sin navegador.
+
+| # | Caso | Función |
+| :---: | --- | --- |
+| U-01 | Extrae el importe de un precio suelto | `parsePrice` |
+| U-02 | Extrae el importe de una etiqueta con texto delante | `parsePrice` |
+| U-03 | Tolera el espacio entre el símbolo y la cifra | `parsePrice` |
+| U-04 | Descarta **todos** los separadores de millares, no solo el primero | `parsePrice` |
+| U-05 | Lanza un error con mensaje si el texto no contiene un importe | `parsePrice` |
+| U-06 | El mensaje del error incluye el texto recibido | `parsePrice` |
+| U-07 | Redondea a dos decimales los impuestos del catálogo | `roundToCents` |
+| U-08 | Absorbe el sobrante de la coma flotante | `roundToCents` |
+| U-09 | Redondea el medio hacia arriba | `roundToCents` |
+
+**U-04 no es un caso de laboratorio:** fija un defecto real que tenía `parsePrice`. La versión
+anterior usaba `replace(',', '')`, que sustituye solo la primera coincidencia, así que
+`$1,234,567.89` se convertía en `1234`. No se manifestaba con los importes de dos cifras del
+catálogo actual y habría esperado callado a la primera cesta que pasara de mil.
+
 ---
 
 ## Cobertura por funcionalidad
@@ -64,6 +88,7 @@ en [`03-hallazgos.md`](03-hallazgos.md).
 | Carrito | 4 | Alta, baja, contador y persistencia |
 | Checkout | 9 | Compra completa, cálculo de importes con 3 cestas, tres campos obligatorios y las dos cancelaciones |
 | Defectos conocidos | 5 | Los cinco reproducibles encontrados en tres de los seis usuarios |
+| Conversión de importes | 9 | Unitarios: extracción, separadores de millares, errores y redondeo |
 
 ### Hueco declarado
 

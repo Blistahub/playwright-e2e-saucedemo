@@ -341,6 +341,11 @@ await pageMini.locator('.mini').screenshot({
   path: join(SALIDA, 'miniatura-playwright-saucedemo.png'),
 });
 console.log('  miniatura-playwright-saucedemo.png (2400x1256)');
+
+/* La misma imagen, versionada dentro de `sitio/`, es la que sirve de og:image
+   al compartir el enlace. Sin ella LinkedIn muestra un recuadro gris. */
+await pageMini.locator('.mini').screenshot({ path: join(RAIZ, 'sitio', 'og.png') });
+console.log('  sitio/og.png (og:image)');
 await ctxMini.close();
 
 await browser.close();

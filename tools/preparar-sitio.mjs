@@ -74,7 +74,7 @@ mkdirSync(DESTINO, { recursive: true });
 
 console.log('Ensamblando el sitio en _sitio/\n');
 
-copiar(join(RAIZ, 'sitio', 'index.html'), join(DESTINO, 'index.html'), 'index.html');
+copiar(join(RAIZ, 'sitio'), DESTINO, 'sitio/ (index.html y og.png)');
 copiar(join(RAIZ, 'evidencias'), join(DESTINO, 'evidencias'), 'evidencias/');
 copiar(join(RAIZ, 'playwright-report'), join(DESTINO, 'informe'), 'informe/');
 

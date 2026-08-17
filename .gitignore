@@ -24,3 +24,6 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Materiales de difusion: se regeneran con npm run carrusel.
+marketing/
